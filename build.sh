@@ -13,6 +13,7 @@ fi
 executable_name=$name
 
 # Compile each .c file with gcc
-
+echo "gcc -o $name $c_files"
+echo "executing"
 gcc -o $name $c_files 
 
