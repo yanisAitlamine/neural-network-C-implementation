@@ -11,9 +11,9 @@ int read(FILE *stream, char *chain, size_t len) {
     if (fgets(chain, len, stream)==NULL){
         return 1;
     }
-    returnChar = strchr(chain, "\n");
+    returnChar = strchr(chain, '\n');
     if (returnChar!=NULL){
-            *returnChar="\0";
+            *returnChar='\0';
     }
     freeBuffer();
     return 0;
@@ -22,7 +22,7 @@ int read(FILE *stream, char *chain, size_t len) {
 // read characters in the buffer until the end of the fil or \n
 void freeBuffer() {
     int a=0;
-    while (a!="\n" && a!=EOF) {
+    while (a!='\n' && a!=EOF) {
         a=getchar();
     }
 }
