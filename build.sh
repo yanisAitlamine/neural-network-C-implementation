@@ -14,5 +14,5 @@ executable_name=$name
 
 # Compile each .c file with gcc
 
-gcc -o ./bin/$name $c_files 
+gcc -fsyntax-only -o $name $c_files 
 
