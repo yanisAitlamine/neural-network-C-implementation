@@ -4,6 +4,7 @@
 #include "matrix.h"
 #include "errors.h"
 
+// Create an object matrix of a given length and size
 matrix createMatrix(size_t len, size_t depth){
 	matrix mtrx;
 	mtrx.len=len;
@@ -16,15 +17,16 @@ matrix createMatrix(size_t len, size_t depth){
 	}
 	for (int i=0;i<len;i++){
 		mtrx.data[i]=(float*)malloc(depth*sizeof(float));
-		if (check_Malloc_Table,mtrx.data[i],("Allocation failed for data table ")){
+		if (check_Malloc_Table(mtrx.data[i],"Allocation failed for data table ")){
             printf("%d!\n",i);
             mtrx.failFlag=true;
             return mtrx;
-        }
+       		 }
 	}
 	return mtrx;
 }
 
+// Free an object matrix
 void freeMatrix (matrix mtrx){
 	for (int i=0;i<mtrx.len;i++){
 		free(mtrx.data[i]);
@@ -32,12 +34,13 @@ void freeMatrix (matrix mtrx){
 	free(mtrx.data);
 }
 
+// Create an object neural network of a given length with given layer lenghts
 nNetwork createNN(size_t len, size_t* depths){
 	nNetwork NN;
 	NN.failFlag=false;
 	NN.len=len;
 	NN.weights=(matrix*)malloc(len*sizeof(matrix));
-	if (check_Malloc_Mtrx_Table(NN.weights,"Allocation failed for weights matrix!\n")){
+	if (check_Malloc_Mtrx(NN.weights,"Allocation failed for weights matrix!\n")){
         NN.failFlag=true;
         return NN;
     }
@@ -62,8 +65,10 @@ nNetwork createNN(size_t len, size_t* depths){
 	return NN;
 }
 
+// Initialize weights with random numbers
 void fillMatrix (float** mtrx, size_t len, size_t* depth){}
 
+// Free a neural network object
 void freeNN(nNetwork NN){
 	for (int i=0;i<NN.len;i++){
 		freeMatrix(NN.weights[i]);
