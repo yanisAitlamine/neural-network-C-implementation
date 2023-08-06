@@ -8,8 +8,8 @@
 
 int main()
 {
-	size_t len=4;
-	if (len >5){
+	size_t len=6;
+	if (len >10){
 		ERROR("Too many layers");
 		return 1;
 	}
@@ -21,13 +21,15 @@ int main()
            		 return 1;
 		}
 	}
-	depths[2]=5;
+	depths[0]=2;
+	depths[2]=4;
+	depths[3]=5;
 	nNetwork NN = createNN(len, depths);
 	if (NN.failFlag){
 		ERROR("NN is NULL!\n");
 	}
-	fillNN(&NN,len,depths);
-	printNN(&NN,len,depths);
+	fillNN(&NN);
+	printNN(&NN);
 	freeNN(NN);
 	printf("freed NN\n");
 	return 0;

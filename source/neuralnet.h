@@ -12,7 +12,7 @@ struct nNetwork{
 };
 
 nNetwork createNN(size_t len, size_t* depths);
-void fillNN(nNetwork* NN, size_t len, size_t* depths);
-void printNN(nNetwork* NN, size_t len, size_t* depths);
+void fillNN(nNetwork* NN);
+void printNN(nNetwork* NN);
 void freeNN (nNetwork);
 #endif

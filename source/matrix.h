@@ -15,5 +15,6 @@ struct Matrix{
 
 matrix createMatrix(size_t len, size_t depth);
 void freeMatrix (matrix mtrx);
-void fillMatrix (matrix* mtrx, size_t len, size_t depth);
+void fillMatrix (matrix* mtrx);
+void printMtrx (matrix* mtrx);
 #endif

@@ -6,7 +6,6 @@
 
 // Create an object matrix of a given length and size
 matrix createMatrix(size_t len, size_t depth){
-	printf("Creating matrix of size %ld, depth %ld!\n",len,depth);
 	matrix mtrx;
 	mtrx.len=len;
 	mtrx.depth=depth;
@@ -38,13 +37,26 @@ void freeMatrix (matrix mtrx){
 
 
 // Initialize mtrx data with random numbers
-void fillMatrix (matrix* mtrx, size_t len, size_t depth){
-	printf("Filling Matrix of size %ld, depth %ld!\n",len,depth);
+void fillMatrix (matrix* mtrx){
 	float x=0.1;
-	for (int i=0;i<len;i++){
-		for (int y=0;y<depth;y++){
+	for (int i=0;i<mtrx->len;i++){
+		for (int y=0;y<mtrx->depth;y++){
 			(mtrx->data)[i][y]=x;
 			x+=0.1;
+			if (x==1){x=0.1;}
 		}
 	}
+}
+
+void printMtrx (matrix* mtrx){
+	printf("[");
+	for (int i=0;i<mtrx->len;i++){
+		printf("[");
+		for (int y=0;y<mtrx->depth;y++){
+			printf("%.1f",(mtrx->data)[i][y]);
+			if (y<mtrx->depth-1){printf(",");}
+		}
+		printf("]");
+	}
+	printf("]");
 }
