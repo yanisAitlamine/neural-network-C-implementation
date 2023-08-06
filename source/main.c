@@ -30,6 +30,8 @@ int main()
 	}
 	fillNN(&NN);
 	printNN(&NN);
+	FILE* toSave=fopen ("NNtest.nn", "w+");
+	writeNN (toSave, NN);
 	freeNN(NN);
 	printf("freed NN\n");
 	return 0;
