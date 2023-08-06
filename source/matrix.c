@@ -6,6 +6,7 @@
 
 // Create an object matrix of a given length and size
 matrix createMatrix(size_t len, size_t depth){
+	printf("Creating matrix of size %ld, depth %ld!\n",len,depth);
 	matrix mtrx;
 	mtrx.len=len;
 	mtrx.depth=depth;
@@ -34,46 +35,18 @@ void freeMatrix (matrix mtrx){
 	free(mtrx.data);
 }
 
-// Create an object neural network of a given length with given layer lenghts
-nNetwork createNN(size_t len, size_t* depths){
-	nNetwork NN;
-	NN.failFlag=false;
-	NN.len=len;
-	NN.weights=(matrix*)malloc(len*sizeof(matrix));
-	if (check_Malloc_Mtrx(NN.weights,"Allocation failed for weights matrix!\n")){
-        NN.failFlag=true;
-        return NN;
-    }
-	NN.bias=(float**)malloc(len*sizeof(float*));
-	if (check_Malloc_2Table(NN.bias,"Allocation failed for bias matrix!\n")){
-        NN.failFlag=true;
-        return NN;
-    }
+
+
+// Initialize mtrx data with random numbers
+void fillMatrix (matrix* mtrx, size_t len, size_t depth){
+	printf("Filling Matrix of size %ld, depth %ld!\n",len,depth);
 	for (int i=0;i<len;i++){
-		NN.weights[i]=createMatrix(i,i+1);
-		if (NN.weights[i].failFlag){
-			NN.failFlag=true;
-			return NN;
-		}
-		NN.bias[i]=(float*)malloc(len*sizeof(float));
-		if (check_Malloc_Table(NN.bias[i],"Allocation failed for bias table ")){
-            printf("%d!\n",i);
-            NN.failFlag=true;
-            return NN;
-        }
+		for (int y=0;y<depth;y++){
+			(mtrx->data)[i][y]=0.5;	
+		}	
 	}
-	return NN;
 }
 
-// Initialize weights with random numbers
-void fillMatrix (float** mtrx, size_t len, size_t* depth){}
+//Initialize weights and bias with rand numbers
 
-// Free a neural network object
-void freeNN(nNetwork NN){
-	for (int i=0;i<NN.len;i++){
-		freeMatrix(NN.weights[i]);
-		free(NN.bias[i]);
-	}
-	free(NN.weights);
-	free(NN.bias);
-}
+

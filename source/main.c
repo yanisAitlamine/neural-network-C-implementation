@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <stddef.h>
 #include <string.h>
-#include "matrix.h"
+#include "neuralnet.h"
 #include "errors.h"
 #include "read.h"
 
@@ -21,10 +21,13 @@ int main()
            		 return 1;
 		}
 	}
+	depths[2]=5;
 	nNetwork NN = createNN(len, depths);
 	if (NN.failFlag){
-		ERROR("Bias is NULL!\n");
+		ERROR("NN is NULL!\n");
 	}
+	fillNN(&NN,len,depths);
+	printNN(&NN,len,depths);
 	freeNN(NN);
 	printf("freed NN\n");
 	return 0;

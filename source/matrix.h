@@ -13,17 +13,7 @@ struct Matrix{
 	float** data;
 };
 
-typedef struct nNetwork nNetwork;
-struct nNetwork{
-	bool failFlag;
-	size_t len;
-	matrix* weights;
-	float** bias;
-};
-
 matrix createMatrix(size_t len, size_t depth);
 void freeMatrix (matrix mtrx);
-void fillMatrix (float** mtrx, size_t len, size_t* depth);
-nNetwork createNN(size_t len, size_t* depths);
-void freeNN (nNetwork);
+void fillMatrix (matrix* mtrx, size_t len, size_t depth);
 #endif

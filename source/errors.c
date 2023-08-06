@@ -23,7 +23,7 @@ int check_Malloc_2Table(float** data,char* message) {
 // Return ERROR value if a matrix object is null
 int check_Malloc_Mtrx(matrix* data,char* message) {
     if(data==NULL){
-            return ERROR(message);
+        return ERROR(message);
     }
     return 0;
 }
