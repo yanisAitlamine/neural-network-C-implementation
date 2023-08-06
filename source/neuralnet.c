@@ -53,17 +53,17 @@ void printNN(nNetwork* NN, size_t len, size_t* depths){
     int maxD=0;
     for (int i=0;i<len;i++){
         if (*(depths+i)>maxD){maxD=*(depths+i);}
-	printf ("\t%d",i);
+	printf ("\t%d\t",i);
     }
     printf ("\n");
     for (int x=0;x<maxD;x++){
-	printf ("%d",x);
+	printf ("%d\t",x);
         for (int i=0;i<len;i++){
-            if (x<((maxD-depths[i])/2)||x>(((maxD-depths[i])/2)+depths[i])){
+            if (x<((maxD-depths[i])/2)||x>=(((maxD-depths[i])/2)+depths[i])){
                 printf("\t");
             } else {
-               // printf("[%f,%f]",NN->weights->data[0][x-maxD+depths[i]],NN->bias->data[0][x-maxD+depths[i]]);
-		printf("%d",x);
+		printf("[%.1f,%.1f]\t",NN->weights->data[0][x-maxD+depths[i]],NN->bias->data[0][x-maxD+depths[i]]);
+		//printf("%d\t",x);
 	    } 
         }
         printf("\n");
