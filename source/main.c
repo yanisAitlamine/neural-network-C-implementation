@@ -4,7 +4,7 @@
 #include <string.h>
 #include "neuralnet.h"
 #include "errors.h"
-#include "read.h"
+#include "in_outNN.h"
 
 int main()
 {
