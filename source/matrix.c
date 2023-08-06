@@ -40,13 +40,11 @@ void freeMatrix (matrix mtrx){
 // Initialize mtrx data with random numbers
 void fillMatrix (matrix* mtrx, size_t len, size_t depth){
 	printf("Filling Matrix of size %ld, depth %ld!\n",len,depth);
+	float x=0.1;
 	for (int i=0;i<len;i++){
 		for (int y=0;y<depth;y++){
-			(mtrx->data)[i][y]=0.5;	
-		}	
+			(mtrx->data)[i][y]=x;
+			x+=0.1;
+		}
 	}
 }
-
-//Initialize weights and bias with rand numbers
-
-

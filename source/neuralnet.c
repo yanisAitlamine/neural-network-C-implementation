@@ -60,9 +60,10 @@ void printNN(nNetwork* NN, size_t len, size_t* depths){
 	printf ("%d\t",x);
         for (int i=0;i<len;i++){
             if (x<((maxD-depths[i])/2)||x>=(((maxD-depths[i])/2)+depths[i])){
-                printf("\t");
+                printf("\t\t");
             } else {
-		printf("[%.1f,%.1f]\t",NN->weights->data[0][x-maxD+depths[i]],NN->bias->data[0][x-maxD+depths[i]]);
+		int rank = x-((maxD-depths[i])/2);
+		printf("[%.1f,%.1f]\t",NN->weights[i].data[0][rank],NN->bias[i].data[0][rank]);
 		//printf("%d\t",x);
 	    } 
         }
