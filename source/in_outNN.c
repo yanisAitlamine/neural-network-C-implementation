@@ -39,25 +39,11 @@ bool writeNN(char* filename, nNetwork* NN){
 	printf ("=");
     }
     for (int i=0; i<NN->len; i++){
-	if (fwrite (&(NN->weights[i]), sizeof(matrix), 1, file)!= 1){ 
+	if (writeMtrx(file, &(NN->weights[i]))){ 
 	    return false;
-	} else {
-	    printf ("=");
-	    for (int x=0;x<NN->weights[i].len;x++){
-		if (fwrite (NN->weights[i].data[x], sizeof(double), NN->weights[i].depth, file)!= NN->weights[i].depth){ 
-		    return false;
-		}
-	    }
 	}
-	if (fwrite (&(NN->bias[i]), sizeof(matrix), 1, file)!= 1){ 
+	if (writeMtrx(file, &(NN->bias[i]))){ 
 	    return false;
-	} else {
-	    printf ("=");
-	    for (int x=0;x<NN->bias[i].len;x++){
-		if (fwrite (NN->bias[i].data[x], sizeof(double), NN->bias[i].depth, file)!= NN->bias[i].depth){ 
-		    return false;
-		}
-	    }
 	}
     }
     if (fclose (file) == EOF){return false;}
@@ -89,11 +75,11 @@ nNetwork* readNN(char* filename){
         return NULL;
     }
     for (int i=0; i<NN->len; i++){
-	if (readMtrx (file, &(NN->weights[i]))){ 	    
+	if (!readMtrx (file, &(NN->weights[i]))){ 	    
 	    free(NN);
 	    return NULL;
 	}
-	if (readMtrx(file, &(NN->bias[i]))){ 	    
+	if (!readMtrx(file, &(NN->bias[i]))){ 	    
 	    free(NN);
 	    return NULL;
 	}
@@ -108,15 +94,29 @@ nNetwork* readNN(char* filename){
 
 bool readMtrx (FILE* file, matrix* mtrx){
     if (fread (mtrx, sizeof(matrix), 1, file)!= 1){ 	    
-	return true;
+	return false;
     } else {
 	printf ("=");
         for (int x=0;x<mtrx->len;x++){
 	    allocData(mtrx);
 	    if (fread (mtrx->data[x], sizeof(double), mtrx->depth, file)!= mtrx->depth || mtrx->failFlag){ 
-		    return true;
+		    return false;
 	   }
 	}
-    return false;
+    return true;
+    }
+}
+
+bool writeMtrx (FILE* file, matrix* mtrx){
+    if (fwrite (mtrx, sizeof(matrix), 1, file)!= 1){ 
+        return false;
+    } else {
+	    printf ("=");
+        for (int x=0;x<mtrx->len;x++){
+	    if (fwrite (mtrx->data[x], sizeof(double), mtrx->depth, file)!= mtrx->depth){ 
+		return false;
+	    }
+        }
+    return true;
     }
 }
