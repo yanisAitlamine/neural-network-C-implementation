@@ -8,6 +8,6 @@
 bool check_Malloc_Table(double* data,char* message);
 bool check_Malloc_2Table(double** data,char* message);
 bool check_Malloc_Mtrx(matrix* data,char* message);
-bool check_weigths(nNetwork* NN);
+bool check_weights(nNetwork* NN);
 bool check_bias(nNetwork* NN);
 #endif

@@ -42,6 +42,21 @@ bool writeNN(char* filename, nNetwork* NN, int total){
     } else {
 	printf ("=");
     }
+    if (fwrite (&(NN->len), sizeof(size_t), 1, file)!=1){ 
+	return false;
+    } else {
+	printf ("=");
+    }
+    if (fwrite (NN->weights, sizeof(matrix), NN->len, file)!= NN->len){ 
+	return false;
+    } else {
+	printf ("=");
+    }
+    if (fwrite (NN->bias, sizeof(matrix), NN->len, file)!= NN->len){ 
+	return false;
+    } else {
+	printf ("=");
+    }
     if (fclose (file) == EOF){return false;}
     printf (">Saved!\n");
     return true;

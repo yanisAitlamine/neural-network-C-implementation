@@ -12,13 +12,13 @@ nNetwork createNN(size_t len, size_t* depths){
 	NN.failFlag=false;
 	NN.len=len;
 	NN.weights=(matrix*)malloc(len*sizeof(matrix));
-	if (check_weigths(&NN)){
-        return NN;
-    }
+	if (check_weights(&NN)){
+	    return NN;
+	}
 	NN.bias=(matrix*)malloc(len*sizeof(matrix));
 	if (check_bias(&NN)){
-        return NN;
-    }
+	    return NN;
+	}
 	printf("depths: ");
 	for (int i=0;i<len;i++){
 		printf ("layer %d:%ld",i,depths[i]);
