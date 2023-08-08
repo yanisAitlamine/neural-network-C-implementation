@@ -27,22 +27,12 @@ void freeBuffer() {
     }
 }
 
-bool writeNN(char* filename, nNetwork* NN, int total){
+bool writeNN(char* filename, nNetwork* NN){
     printf ("Saving neural net of size %ld!\n",NN->len);
     FILE* file=NULL;
     file = fopen(filename, "wb+");
     if (file==NULL){ return false;}
-    if (fwrite (&total, sizeof(int), 1, file)!=1){ 
-	return false;
-    } else {
-	printf ("=");
-    }
     if (fwrite (NN, sizeof(nNetwork), total, file)!= total){ 
-	return false;
-    } else {
-	printf ("=");
-    }
-    if (fwrite (&(NN->len), sizeof(size_t), 1, file)!=1){ 
 	return false;
     } else {
 	printf ("=");
@@ -62,16 +52,23 @@ bool writeNN(char* filename, nNetwork* NN, int total){
     return true;
 }
 
-nNetwork* readNN(char* filename, int total){
-    printf ("Loading %d neural networks!\n",total);
+nNetwork* readNN(char* filename){
+    printf ("Loading neural networks!\n");
     FILE* file=NULL;
     file = fopen(filename, "rb");
     if (file==NULL){ return NULL;}
-    if (fread (&total, sizeof(int), 1, file)!=1){ return NULL;}
     nNetwork* data = malloc (total * sizeof(nNetwork));
-    if (fread (data, sizeof(nNetwork), total, file)!= total){
+    if (fread (data, sizeof(nNetwork), 1, file)!=1){
 	free(data);
 	return NULL;
+    }
+    NN->weights=(matrix*)malloc(len*sizeof(matrix));
+	if (check_weights(NN)){
+	    return NULL;
+	}
+    NN.bias=(matrix*)malloc(len*sizeof(matrix));
+    if (check_bias(NN)){
+        return NULL;
     }
     if (fclose (file)== EOF){
 	free(data);
