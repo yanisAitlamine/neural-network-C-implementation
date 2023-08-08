@@ -5,6 +5,6 @@
 
 int read(FILE *stream, char *chain, size_t len);
 void freeBuffer();
-bool writeNN(char* filename, nNetwork* NN, int total);
-nNetwork* readNN(char* filename, int total);
+bool writeNN(char* filename, nNetwork* NN);
+nNetwork* readNN(char* filename);
 #endif // READ_H_INCLUDED

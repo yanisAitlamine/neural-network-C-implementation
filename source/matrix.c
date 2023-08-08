@@ -10,20 +10,25 @@ matrix createMatrix(size_t len, size_t depth){
 	mtrx.len=len;
 	mtrx.depth=depth;
 	mtrx.failFlag=false;
-	mtrx.data=(double**)malloc(len * sizeof(double*));
-	if (check_Malloc_2Table(mtrx.data,"Allocation failed for data matrix!\n")){
-        mtrx.failFlag=true;
-        return mtrx;
+	allocData (&mtrx);
+	return mtrx;
+}
+
+//Allocate space for data of a matrix
+void allocData (matrix* mtrx){
+	mtrx->data=(double**)malloc(mtrx->len * sizeof(double*));
+	if (check_Malloc_2Table(mtrx->data,"Allocation failed for data matrix!\n")){
+        mtrx->failFlag=true;
+	return;
 	}
-	for (int i=0;i<len;i++){
-		mtrx.data[i]=(double*)malloc(depth*sizeof(double));
-		if (check_Malloc_Table(mtrx.data[i],"Allocation failed for data table ")){
+	for (int i=0;i<mtrx->len;i++){
+		mtrx->data[i]=(double*)malloc(mtrx->depth*sizeof(double));
+		if (check_Malloc_Table(mtrx->data[i],"Allocation failed for data table ")){
             printf("%d!\n",i);
-            mtrx.failFlag=true;
-            return mtrx;
+            mtrx->failFlag=true;
+            return;
        		 }
 	}
-	return mtrx;
 }
 
 // Free an object matrix
