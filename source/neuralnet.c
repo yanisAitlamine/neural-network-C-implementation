@@ -54,7 +54,7 @@ void printNN(nNetwork* NN){
     printf ("Printing neural net of size %ld!\n",NN->len);
     for (int i=0;i<NN->len;i++){
 	printf ("===================================================================\n");
-	printf("Layer %d\n",i);
+	printf("Layer %d\tlen: %ld\tdepth: %ld\n",i,NN->weights[i].len,NN->bias[i].depth);
 	printf ("===================================================================\n");
     	printMtrx(&(NN->weights[i]));
     	printf("\n");

@@ -42,24 +42,22 @@ bool writeNN(char* filename, nNetwork* NN){
 	if (fwrite (&(NN->weights[i]), sizeof(matrix), 1, file)!= 1){ 
 	    return false;
 	} else {
+	    printf ("=");
 	    for (int x=0;x<NN->weights[i].len;x++){
 		if (fwrite (NN->weights[i].data[x], sizeof(double), NN->weights[i].depth, file)!= NN->weights[i].depth){ 
 		    return false;
 		}
 	    }
-	    printf ("=");
 	}
-    }
-    for (int i=0; i<NN->len; i++){
 	if (fwrite (&(NN->bias[i]), sizeof(matrix), 1, file)!= 1){ 
 	    return false;
 	} else {
+	    printf ("=");
 	    for (int x=0;x<NN->bias[i].len;x++){
 		if (fwrite (NN->bias[i].data[x], sizeof(double), NN->bias[i].depth, file)!= NN->bias[i].depth){ 
 		    return false;
 		}
 	    }
-	    printf ("=");
 	}
     }
     if (fclose (file) == EOF){return false;}
@@ -72,7 +70,7 @@ nNetwork* readNN(char* filename){
     FILE* file=NULL;
     file = fopen(filename, "rb");
     if (file==NULL){ return NULL;}
-    nNetwork* NN = malloc ( sizeof(nNetwork));
+    nNetwork* NN = (nNetwork*) malloc (sizeof(nNetwork));
 
     if (fread (NN, sizeof(nNetwork), 1, file)!= 1){ 
     	free(NN);
@@ -91,33 +89,13 @@ nNetwork* readNN(char* filename){
         return NULL;
     }
     for (int i=0; i<NN->len; i++){
-	if (fread (&(NN->weights[i]), sizeof(matrix), 1, file)!= 1){ 	    
+	if (readMtrx (file, &(NN->weights[i]))){ 	    
 	    free(NN);
 	    return NULL;
-	} else {
-	    for (int x=0;x<NN->weights[i].len;x++){
-		allocData(&NN->weights[i]);
-		if (fread (NN->weights[i].data[x], sizeof(double), NN->weights[i].depth, file)!= NN->weights[i].depth || NN->weights[i].failFlag){ 
-		    free(NN);
-		    return NULL;
-		}
-	    }
-	    printf ("=");
 	}
-    }
-    for (int i=0; i<NN->len; i++){
-	if (fread (&(NN->bias[i]), sizeof(matrix), 1, file)!= 1){ 	    
+	if (readMtrx(file, &(NN->bias[i]))){ 	    
 	    free(NN);
 	    return NULL;
-	} else {
-	    for (int x=0;x<NN->bias[i].len;x++){
-		allocData(&NN->bias[i]);
-		if (fread (NN->bias[i].data[x], sizeof(double), NN->bias[i].depth, file)!= NN->bias[i].depth || NN->bias[i].failFlag){ 
-		    free(NN);
-		    return NULL;
-		}
-	    }
-	    printf ("=");
 	}
     }
     printf (">Loaded!\n");
@@ -126,4 +104,19 @@ nNetwork* readNN(char* filename){
 	return NULL;
     }
     return NN;
+}
+
+bool readMtrx (FILE* file, matrix* mtrx){
+    if (fread (mtrx, sizeof(matrix), 1, file)!= 1){ 	    
+	return true;
+    } else {
+	printf ("=");
+        for (int x=0;x<mtrx->len;x++){
+	    allocData(mtrx);
+	    if (fread (mtrx->data[x], sizeof(double), mtrx->depth, file)!= mtrx->depth || mtrx->failFlag){ 
+		    return true;
+	   }
+	}
+    return false;
+    }
 }
