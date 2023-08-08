@@ -27,31 +27,40 @@ void freeBuffer() {
     }
 }
 
-void writeNN(FILE* toSave, nNetwork NN){
-    printf ("Saving neural net of size %ld!\n",NN.len+1);
-    fprintf(toSave, "%ld\n",NN.len);
-    for (int i=0;i<NN.len;i++){
-	fprintf(toSave, "%ld",(NN.weights[i]).len);
-	if (i<NN.len-1){fputc(',', toSave);} else {fputc('\n', toSave);}
+bool writeNN(char* filename, nNetwork* NN, int total){
+    printf ("Saving neural net of size %ld!\n",NN->len);
+    FILE* file=NULL;
+    file = fopen(filename, "wb+");
+    if (file==NULL){ return false;}
+    if (fwrite (&total, sizeof(int), 1, file)!=1){ 
+	return false;
+    } else {
+	printf ("=");
     }
-    for (int i=0;i<NN.len;i++){
-    	writeMtrx(toSave, &(NN.weights[i]));
-    	fputc('\n', toSave);
-    	writeMtrx(toSave, &(NN.bias[i]));
-	fputc('\n', toSave);
+    if (fwrite (NN, sizeof(nNetwork), total, file)!= total){ 
+	return false;
+    } else {
+	printf ("=");
     }
+    if (fclose (file) == EOF){return false;}
+    printf (">Saved!\n");
+    return true;
 }
 
-void writeMtrx(FILE* toSave, matrix* mtrx){
-    fputc('[', toSave);
-	for (int i=0;i<mtrx->len;i++){
-		fputc('[',toSave);
-		for (int y=0;y<mtrx->depth;y++){
-			fprintf(toSave, "%f",(mtrx->data)[i][y]);
-			if (y<mtrx->depth-1){fputc(',', toSave);}
-		}
-		fputc(']', toSave);
-	}
-	fputc(']', toSave);
-
+nNetwork* readNN(char* filename, int total){
+    printf ("Loading %d neural networks!\n",total);
+    FILE* file=NULL;
+    file = fopen(filename, "rb");
+    if (file==NULL){ return NULL;}
+    if (fread (&total, sizeof(int), 1, file)!=1){ return NULL;}
+    nNetwork* data = malloc (total * sizeof(nNetwork));
+    if (fread (data, sizeof(nNetwork), total, file)!= total){
+	free(data);
+	return NULL;
+    }
+    if (fclose (file)== EOF){
+	free(data);
+	return NULL;
+    }
+    return data;
 }

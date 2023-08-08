@@ -24,15 +24,20 @@ int main()
 	depths[0]=2;
 	depths[2]=4;
 	depths[3]=5;
-	nNetwork NN = createNN(len, depths);
-	if (NN.failFlag){
+	char* toSave="NNtest.nn";
+	char* toRead="NNtest2.nn";
+	//nNetwork NN = createNN( len, depths);
+	//nNetwork* nn = &NN;
+	nNetwork* nn = readNN(toRead, 0);
+	if (nn==NULL||nn->failFlag){
 		ERROR("NN is NULL!\n");
 	}
-	fillNN(&NN);
-	printNN(&NN);
-	FILE* toSave=fopen ("NNtest.nn", "w+");
-	writeNN (toSave, NN);
-	freeNN(NN);
+	//fillNN(&NN);
+	printNN(nn);
+	
+	if (!writeNN (toSave, nn, 1)){ERROR("failed to write");}
+	//freeNN(NN);
+	free(nn);
 	printf("freed NN\n");
 	return 0;
 }

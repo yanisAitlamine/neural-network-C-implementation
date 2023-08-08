@@ -10,13 +10,13 @@ matrix createMatrix(size_t len, size_t depth){
 	mtrx.len=len;
 	mtrx.depth=depth;
 	mtrx.failFlag=false;
-	mtrx.data=(float**)malloc(len * sizeof(float*));
+	mtrx.data=(double**)malloc(len * sizeof(double*));
 	if (check_Malloc_2Table(mtrx.data,"Allocation failed for data matrix!\n")){
         mtrx.failFlag=true;
         return mtrx;
 	}
 	for (int i=0;i<len;i++){
-		mtrx.data[i]=(float*)malloc(depth*sizeof(float));
+		mtrx.data[i]=(double*)malloc(depth*sizeof(double));
 		if (check_Malloc_Table(mtrx.data[i],"Allocation failed for data table ")){
             printf("%d!\n",i);
             mtrx.failFlag=true;
@@ -38,12 +38,12 @@ void freeMatrix (matrix mtrx){
 
 // Initialize mtrx data with random numbers
 void fillMatrix (matrix* mtrx){
-	float x=0.1;
+	double x=0.1;
 	for (int i=0;i<mtrx->len;i++){
 		for (int y=0;y<mtrx->depth;y++){
 			(mtrx->data)[i][y]=x;
 			x+=0.1;
-			if (x==1){x=0.1;}
+			if (x>=1.0){x=0.1;}
 		}
 	}
 }

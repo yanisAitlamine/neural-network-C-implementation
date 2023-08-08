@@ -5,6 +5,6 @@
 
 int read(FILE *stream, char *chain, size_t len);
 void freeBuffer();
-void writeNN(FILE* toSave, nNetwork NN);
-void writeMtrx(FILE* toSave, matrix* mtrx);
+bool writeNN(char* filename, nNetwork* NN, int total);
+nNetwork* readNN(char* filename, int total);
 #endif // READ_H_INCLUDED

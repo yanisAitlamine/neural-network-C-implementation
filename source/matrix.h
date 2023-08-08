@@ -10,7 +10,7 @@ struct Matrix{
 	bool failFlag;
 	size_t len;
 	size_t depth;
-	float** data;
+	double** data;
 };
 
 matrix createMatrix(size_t len, size_t depth);

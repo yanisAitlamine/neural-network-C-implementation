@@ -1,11 +1,13 @@
 #ifndef __ERRORS__
 #define __ERRORS__
 #include <stdbool.h>
+#include "neuralnet.h"
 #include "matrix.h"
-#define ERROR(message) printf(message);return 1
+#define ERROR(message) printf(message);return true
 
-int check_Malloc_Table(float* data,char* message);
-int check_Malloc_2Table(float** data,char* message);
-int check_Malloc_Mtrx(matrix* data,char* message);
-
+bool check_Malloc_Table(double* data,char* message);
+bool check_Malloc_2Table(double** data,char* message);
+bool check_Malloc_Mtrx(matrix* data,char* message);
+bool check_weigths(nNetwork* NN);
+bool check_bias(nNetwork* NN);
 #endif

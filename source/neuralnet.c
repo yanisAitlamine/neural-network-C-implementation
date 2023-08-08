@@ -12,13 +12,11 @@ nNetwork createNN(size_t len, size_t* depths){
 	NN.failFlag=false;
 	NN.len=len;
 	NN.weights=(matrix*)malloc(len*sizeof(matrix));
-	if (check_Malloc_Mtrx(NN.weights,"Allocation failed for weights matrix!\n")){
-        NN.failFlag=true;
+	if (check_weigths(&NN)){
         return NN;
     }
 	NN.bias=(matrix*)malloc(len*sizeof(matrix));
-	if (check_Malloc_Mtrx(NN.bias,"Allocation failed for bias matrix!\n")){
-        NN.failFlag=true;
+	if (check_bias(&NN)){
         return NN;
     }
 	printf("depths: ");
@@ -53,7 +51,7 @@ void fillNN(nNetwork* NN){
 
 //Print weights and bias
 void printNN(nNetwork* NN){
-    printf ("Printing neural net of size %ld!\n",NN->len+1);
+    printf ("Printing neural net of size %ld!\n",NN->len);
     for (int i=0;i<NN->len;i++){
 	printf ("===================================================================\n");
 	printf("Layer %d\n",i);
