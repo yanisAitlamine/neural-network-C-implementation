@@ -39,10 +39,10 @@ bool writeNN(char* filename, nNetwork* NN){
 	printf ("=");
     }
     for (int i=0; i<NN->len; i++){
-	if (writeMtrx(file, &(NN->weights[i]))){ 
+	if (!writeMtrx(file, &(NN->weights[i]))){ 
 	    return false;
 	}
-	if (writeMtrx(file, &(NN->bias[i]))){ 
+	if (!writeMtrx(file, &(NN->bias[i]))){ 
 	    return false;
 	}
     }
@@ -113,7 +113,7 @@ bool writeMtrx (FILE* file, matrix* mtrx){
     } else {
 	    printf ("=");
         for (int x=0;x<mtrx->len;x++){
-	    if (fwrite (mtrx->data[x], sizeof(double), mtrx->depth, file)!= mtrx->depth){ 
+	    if (fwrite (mtrx->data[x], sizeof(double), mtrx->depth, file)!= mtrx->depth){
 		return false;
 	    }
         }
