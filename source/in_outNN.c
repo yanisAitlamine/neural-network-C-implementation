@@ -36,12 +36,12 @@ bool writeNN(char* filename, nNetwork* NN){
     if (file==NULL){ return false;}
     if (fwrite (&(NN->len), sizeof(size_t), 1, file)!= 1){ 
 	return false;
-    } else {
-	printf ("=");
     }
+    printf ("=");
     if (fwrite (NN->depths, sizeof(size_t), NN->len, file)!=NN->len){
 	return false;
     }
+    printf ("=");
     for (int i=0; i<NN->len-1; i++){
 	if (!writeMtrx(file, NN->weights[i], NN->depths[i], NN->depths[i+1])){ 
 	    return false;
@@ -74,17 +74,15 @@ nNetwork* readNN(char* filename){
     if (fread (&len, sizeof(size_t), 1, file)!= 1){
 	return NULL;
     }
-    printf ("=%ld",len);
+    printf ("=");
     size_t* depths=(size_t*)malloc(len*sizeof(size_t));
     if (fread(depths, sizeof(size_t), len,file)!=len){
 	free(depths);
 	return NULL;
     }
-    printf ("=");
-    for (int i=0;i<len;i++){printf("%ld",depths[i]);}
+    printf ("=\n");
     nNetwork* NN=createNN(len,depths);
     free(depths);
-    printNN(NN);
     for (int i=0; i<NN->len-1; i++){
 	if (!readMtrx (file, NN->weights[i], NN->depths[i], NN->depths[i+1])){ 	    
 	    freeNN(NN);
