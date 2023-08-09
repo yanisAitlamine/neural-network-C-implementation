@@ -8,7 +8,7 @@
 
 int main()
 {
-	size_t len=6;
+	size_t len=5;
 	if (len >10){
 		ERROR("Too many layers");
 		return 1;
@@ -26,15 +26,15 @@ int main()
 	depths[3]=5;
 	char* toSave="NNtest.nn";
 	char* toRead="NNtest.nn";
-	nNetwork NN = createNN( len, depths);
+	nNetwork* NN = createNN( len, depths);
 	nNetwork* nn = &NN;
-	if (nn==NULL||nn->failFlag){
+	if (nn==NULL||NN->failFlag){
 		ERROR("NN is NULL!\n");
 	}
-	fillNN(&NN);
-	printNN(nn);
-	if (!writeNN (toSave, nn)){ERROR("failed to write");}
-	freeNN(NN);
+	fillNN(NN);
+	printNN(NN);
+	if (!writeNN (toSave, NN)){ERROR("failed to write");}
+	freeNN(*NN);
 	printf("freed NN\n");
 	nNetwork* nn2 = readNN(toRead);
 	if (nn2==NULL||nn2->failFlag){

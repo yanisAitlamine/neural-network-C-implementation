@@ -38,11 +38,14 @@ bool writeNN(char* filename, nNetwork* NN){
     } else {
 	printf ("=");
     }
-    for (int i=0; i<NN->len; i++){
-	if (!writeMtrx(file, &(NN->weights[i]))){ 
+    if (fwrite (NN->depths, sizeof(size_t), NN->len, file)!=NN->len){
+	return false;
+    }
+    for (int i=0; i<NN->len-1; i++){
+	if (!writeMtrx(file, NN->weights[i], NN->depths[i], NN->depths[i+1])){ 
 	    return false;
 	}
-	if (!writeMtrx(file, &(NN->bias[i]))){ 
+	if (!writeMtrx(file, NN->bias[i], NN->depths[i], NN->depths[i+1])){ 
 	    return false;
 	}
     }
@@ -56,67 +59,54 @@ nNetwork* readNN(char* filename){
     FILE* file=NULL;
     file = fopen(filename, "rb");
     if (file==NULL){ return NULL;}
-    nNetwork* NN = (nNetwork*) malloc (sizeof(nNetwork));
-
-    if (fread (NN, sizeof(nNetwork), 1, file)!= 1){ 
-    	free(NN);
+    nNetwork* buff = (nNetwork*) malloc (sizeof(nNetwork));
+    if (fread (buff, sizeof(nNetwork), 1, file)!= 1){
+	freeNN(*buff);
 	return NULL;
-    } else {
-	printf ("=");
     }
-    NN->weights=(matrix*)malloc(NN->len*sizeof(matrix));
-    if (check_weights(NN)){
-	free(NN);
-        return NULL;
+    printf ("=");
+    buff->depths=(size_t*)malloc(buff->len*sizeof(size_t));
+    if (fread(buff->depths, sizeof(size_t), buff->len,file)!=buff->len){
+	freeNN(*buff);
+	return NULL;
     }
-    NN->bias=(matrix*)malloc(NN->len*sizeof(matrix));
-    if (check_bias(NN)){
-	free(NN);
-        return NULL;
-    }
-    for (int i=0; i<NN->len; i++){
-	if (!readMtrx (file, &(NN->weights[i]))){ 	    
-	    free(NN);
+    nNetwork* NN=createNN(buff->len,buff->depths);
+    freeNN(*buff);
+    for (int i=0; i<NN->len-1; i++){
+	if (!readMtrx (file, NN->weights[i], NN->depths[i], NN->depths[i+1])){ 	    
+	    freeNN(*NN);
 	    return NULL;
 	}
-	if (!readMtrx(file, &(NN->bias[i]))){ 	    
-	    free(NN);
+	if (!readMtrx(file, NN->bias[i], NN->depths[i], NN->depths[i+1])){ 	    
+	    freeNN(*NN);
 	    return NULL;
 	}
     }
     printf (">Loaded!\n");
     if (fclose (file)== EOF){
-	free(NN);
+	freeNN(*NN);
 	return NULL;
     }
     return NN;
 }
 
-bool readMtrx (FILE* file, matrix* mtrx){
-    if (fread (mtrx, sizeof(matrix), 1, file)!= 1){ 	    
-	return false;
-    } else {
-	printf ("=");
-        for (int x=0;x<mtrx->len;x++){
-	    allocData(mtrx);
-	    if (fread (mtrx->data[x], sizeof(double), mtrx->depth, file)!= mtrx->depth || mtrx->failFlag){ 
-		    return false;
-	   }
+bool readMtrx (FILE* file, double** mtrx, size_t len, size_t depth){
+    printf ("=");
+    for (int x=0;x<len;x++){
+        if (fread (mtrx[x], sizeof(double), depth, file)!= depth){ 
+		return false;
 	}
-    return true;
     }
+    return true;
 }
 
-bool writeMtrx (FILE* file, matrix* mtrx){
-    if (fwrite (mtrx, sizeof(matrix), 1, file)!= 1){ 
-        return false;
-    } else {
-	    printf ("=");
-        for (int x=0;x<mtrx->len;x++){
-	    if (fwrite (mtrx->data[x], sizeof(double), mtrx->depth, file)!= mtrx->depth){
-		return false;
+bool writeMtrx (FILE* file, double** mtrx, size_t len, size_t depth){
+	printf ("=");
+        for (int x=0;x<len;x++){
+	    if (fwrite (mtrx[x], sizeof(double), depth, file)!= depth){
+    	    return false;
 	    }
         }
     return true;
-    }
 }
+
