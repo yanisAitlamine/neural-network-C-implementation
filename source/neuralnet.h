@@ -12,7 +12,9 @@ struct nNetwork{
 };
 
 nNetwork* createNN(size_t len, size_t* depths);
+bool alloc_mtrx(double ***mtrx, size_t len, size_t depth);
 void fillNN(nNetwork* NN);
 void printNN(nNetwork* NN);
-void freeNN (nNetwork);
+void freeNN (nNetwork* NN);
+void free_mtrx(double ***data, size_t depth);
 #endif

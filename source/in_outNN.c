@@ -28,12 +28,13 @@ void freeBuffer() {
     }
 }
 
+//write a NN to a file
 bool writeNN(char* filename, nNetwork* NN){
     printf ("Saving neural net of size %ld!\n",NN->len);
     FILE* file=NULL;
     file = fopen(filename, "wb+");
     if (file==NULL){ return false;}
-    if (fwrite (NN, sizeof(nNetwork), 1, file)!= 1){ 
+    if (fwrite (&(NN->len), sizeof(size_t), 1, file)!= 1){ 
 	return false;
     } else {
 	printf ("=");
@@ -54,42 +55,55 @@ bool writeNN(char* filename, nNetwork* NN){
     return true;
 }
 
+//free a buffer nNetwork that hasn't had its w and b initialized
+void freeBuffNN(nNetwork* buff){
+    free(buff->weights);
+    free(buff->bias);
+    free(buff->depths);
+    buff->depths=NULL;
+    freeNN(buff);
+}
+
+//read a nNetwork from a file
 nNetwork* readNN(char* filename){
     printf ("Loading neural networks!\n");
     FILE* file=NULL;
     file = fopen(filename, "rb");
     if (file==NULL){ return NULL;}
-    nNetwork* buff = (nNetwork*) malloc (sizeof(nNetwork));
-    if (fread (buff, sizeof(nNetwork), 1, file)!= 1){
-	freeNN(*buff);
+    size_t len;
+    if (fread (&len, sizeof(size_t), 1, file)!= 1){
+	return NULL;
+    }
+    printf ("=%ld",len);
+    size_t* depths=(size_t*)malloc(len*sizeof(size_t));
+    if (fread(depths, sizeof(size_t), len,file)!=len){
+	free(depths);
 	return NULL;
     }
     printf ("=");
-    buff->depths=(size_t*)malloc(buff->len*sizeof(size_t));
-    if (fread(buff->depths, sizeof(size_t), buff->len,file)!=buff->len){
-	freeNN(*buff);
-	return NULL;
-    }
-    nNetwork* NN=createNN(buff->len,buff->depths);
-    freeNN(*buff);
+    for (int i=0;i<len;i++){printf("%ld",depths[i]);}
+    nNetwork* NN=createNN(len,depths);
+    free(depths);
+    printNN(NN);
     for (int i=0; i<NN->len-1; i++){
 	if (!readMtrx (file, NN->weights[i], NN->depths[i], NN->depths[i+1])){ 	    
-	    freeNN(*NN);
+	    freeNN(NN);
 	    return NULL;
 	}
 	if (!readMtrx(file, NN->bias[i], NN->depths[i], NN->depths[i+1])){ 	    
-	    freeNN(*NN);
+	    freeNN(NN);
 	    return NULL;
 	}
     }
     printf (">Loaded!\n");
     if (fclose (file)== EOF){
-	freeNN(*NN);
+	freeNN(NN);
 	return NULL;
     }
     return NN;
 }
 
+//read matrix values from a file
 bool readMtrx (FILE* file, double** mtrx, size_t len, size_t depth){
     printf ("=");
     for (int x=0;x<len;x++){
@@ -100,6 +114,7 @@ bool readMtrx (FILE* file, double** mtrx, size_t len, size_t depth){
     return true;
 }
 
+//write mtrx values to a file
 bool writeMtrx (FILE* file, double** mtrx, size_t len, size_t depth){
 	printf ("=");
         for (int x=0;x<len;x++){

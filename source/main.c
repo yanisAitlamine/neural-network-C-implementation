@@ -27,21 +27,24 @@ int main()
 	char* toSave="NNtest.nn";
 	char* toRead="NNtest.nn";
 	nNetwork* NN = createNN( len, depths);
-	nNetwork* nn = &NN;
-	if (nn==NULL||NN->failFlag){
+	if (NN==NULL||NN->failFlag){
 		ERROR("NN is NULL!\n");
+		freeNN(NN);
+		return 1;
 	}
 	fillNN(NN);
 	printNN(NN);
 	if (!writeNN (toSave, NN)){ERROR("failed to write");}
-	freeNN(*NN);
+	freeNN(NN);
 	printf("freed NN\n");
-	nNetwork* nn2 = readNN(toRead);
-	if (nn2==NULL||nn2->failFlag){
+	nNetwork* nn = readNN(toRead);
+	if (nn==NULL||nn->failFlag){
 		ERROR("NN 2 is NULL!\n");
+		freeNN(nn);
+		return 1;
 	}
-	printNN(nn2);
-	freeNN(*nn2);
+	printNN(nn);
+	freeNN(nn);
 	printf( "freed NN 2\n");
 	return 0;
 }

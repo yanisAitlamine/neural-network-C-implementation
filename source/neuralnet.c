@@ -11,45 +11,52 @@ nNetwork* createNN(size_t len, size_t* depths){
 	NN->failFlag=false;
 	NN->len=len;
 	NN->depths=(size_t*)malloc(len*sizeof(size_t));
+	if (check_malloc(NN->depths,"Depths init failed!\n")){
+	    NN->failFlag=true;
+	    return NN;
+	}
 	NN->weights=(double***)malloc(len*sizeof(double**));
-	//if (check_weights(&NN)){
-//	    return NN;
-	//}
+	if (check_malloc(NN->weights,"Weights init failed!\n")){
+	    NN->failFlag=true;
+	    return NN;
+	}
 	NN->bias=(double***)malloc(len*sizeof(double**));
-	//if (check_bias(&NN)){
-//	    return NN;
-	//}
+	if (check_malloc(NN->bias,"Bias init failed!\n")){
+	    NN->failFlag=true;
+	    return NN;
+	}
 	printf("depths\t ");
 	NN->depths[0]=depths[0];
 	for (int i=0;i<len-1;i++){
-		printf ("layer %d:%ld\t",i,depths[i]);
-		NN->depths[i+1]=depths[i+1];
-		NN->weights[i]=(double**)malloc(*(depths+i)*sizeof(double));
-		for (int y=0;y<*(depths+i);y++){
-		    NN->weights[i][y]=(double*)malloc(*(depths+i+1)*sizeof(double));
-		}
-		//if (NN.weights[i].failFlag){
-	//		NN.failFlag=true;
-//			return NN;
-		//}
-		NN->bias[i]=(double**)malloc(*(depths+i)*sizeof(double));
-		for (int y=0;y<*(depths+i);y++){
-		    NN->bias[i][y]=(double*)malloc(*(depths+i+1)*sizeof(double));
-		}		
-	//	if (NN.bias[i].failFlag){
-		//	NN.failFlag=true;
-	//		return NN;
-		//}
+	    printf ("layer %d:%ld\t",i,depths[i]);
+	    NN->depths[i+1]=depths[i+1];
+	    if(alloc_mtrx(&(NN->weights[i]), NN->depths[i],NN->depths[i+1])) return NN;
+	    if (alloc_mtrx(&(NN->bias[i]), NN->depths[i],NN->depths[i+1])) return NN;
 	}
 	printf("\nSuccesfully created!\n");
 	return NN;
+}
+
+//Allocate space for a matrix
+bool alloc_mtrx(double*** mtrx, size_t len, size_t depth){
+    *mtrx=(double**)malloc(len*sizeof(double*));
+    if (check_malloc(*mtrx,"Mtrx init failed!\n")){
+	return true;
+    }
+    for (int y=0;y<len;y++){
+	(*mtrx)[y]=(double*)malloc(depth*sizeof(double));
+	if (check_malloc((*mtrx)[y],"Init failed at row: ")){
+	    printf ("%d,%d!\n",len,y);
+	    return true;
+	}
+    }
+    return false;
 }
 
 //Initialize weights and bias with random numbers
 void fillNN(nNetwork* NN){
     printf ("Filling neural net of size %ld!\n",NN->len);
     for (int i=0;i<NN->len-1;i++){
-        printf ("Filling weights of row %d!\n",i);
 	double buff=0.1;
         for (int x=0;x<NN->depths[i];x++){
 	    for (int y=0; y<NN->depths[i+1];y++){	
@@ -59,7 +66,6 @@ void fillNN(nNetwork* NN){
 	    }
 	}
 	buff=0.1;
-        printf ("Filling bias of row %d!\n",i);
         for (int x=0;x<NN->depths[i];x++){
 	    for (int y=0; y<NN->depths[i+1];y++){
 		NN->bias[i][x][y]=buff;
@@ -101,7 +107,33 @@ void printNN(nNetwork* NN){
 
 
 // Free a neural network object
-void freeNN(nNetwork NN){
-	free(NN.weights);
-	free(NN.bias);
+void freeNN(nNetwork* NN){
+    if (NN!=NULL){
+	printf ("Free network of size %ld!\n",NN->len);
+	if (NN->depths!=NULL){
+	    if (NN->weights!=NULL){	
+		for (int i=0;i<NN->len-1;i++){
+		    free_mtrx(&(NN->weights[i]), NN->depths[i]);
+		}
+		free(NN->weights);
+		for (int i=0;i<NN->len-1;i++){
+		    free_mtrx(&(NN->bias[i]), NN->depths[i]);
+		}
+		free(NN->bias);
+	    }
+	    free(NN->depths);
+	}
+    free(NN);
+    printf("Freed!\n");
+    }
+}
+
+void free_mtrx(double ***data, size_t depth){
+    if (*data!=NULL){
+	printf ("Free matrix of size %ld!\n",depth);
+	for (int i=0;i<depth;i++){
+	    if (*(data+i)!=NULL) free((*data)[i]);
+	}
+	free(*data);
+    }
 }
