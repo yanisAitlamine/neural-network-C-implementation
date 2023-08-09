@@ -4,6 +4,11 @@
 #include "errors.h"
 #include "neuralnet.h"
 
+
+double rand_double(){
+    return (double)rand()/(double)RAND_MAX;
+}
+
 // Create an object neural network of a given length with given layer lenghts
 nNetwork* createNN(size_t len, size_t* depths){
 	printf("Creating Network of size %ld!\n",len);
@@ -57,20 +62,14 @@ bool alloc_mtrx(double*** mtrx, size_t len, size_t depth){
 void fillNN(nNetwork* NN){
     printf ("Filling neural net of size %ld!\n",NN->len);
     for (int i=0;i<NN->len-1;i++){
-	double buff=0.1;
         for (int x=0;x<NN->depths[i];x++){
 	    for (int y=0; y<NN->depths[i+1];y++){	
-		NN->weights[i][x][y]=buff;
-		buff= buff+0.1;
-		if (buff>=1.0) buff=0.1;
+		NN->weights[i][x][y]=rand_double();
 	    }
 	}
-	buff=0.1;
         for (int x=0;x<NN->depths[i];x++){
 	    for (int y=0; y<NN->depths[i+1];y++){
-		NN->bias[i][x][y]=buff;
-		buff= buff+0.1;
-		if (buff>=1.0) buff=0.1;
+		NN->bias[i][x][y]=rand_double();
 	    }
 	}
     }
