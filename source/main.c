@@ -48,6 +48,11 @@ int main()
 	double** output=(double**)malloc(NB_IN*sizeof(double*));
 	*output=(double*)malloc(DP_OUT*sizeof(double));
 	for (int i=0;i<NB_IN;i++){
+		output[i]=(double*)malloc(DP_OUT*sizeof(double));
+		if (input[i]==NULL||output[i]==NULL){
+			ERROR("input or output null!\n");
+			return 1;
+		}
 		compute (input[i], &(output[i]), NN);
 	}
 	printf ("output: [");
