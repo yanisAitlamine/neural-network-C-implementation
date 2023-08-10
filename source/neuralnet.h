@@ -8,11 +8,12 @@ struct nNetwork{
 	size_t len;
 	size_t* depths;
 	double*** weights;
-	double*** bias;
+	double** bias;
 };
 
 nNetwork* createNN(size_t len, size_t* depths);
 bool alloc_mtrx(double ***mtrx, size_t len, size_t depth);
+bool alloc_table(double** mtrx, size_t len);
 void fillNN(nNetwork* NN);
 void printNN(nNetwork* NN);
 void freeNN (nNetwork* NN);

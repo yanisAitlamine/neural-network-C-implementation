@@ -46,22 +46,13 @@ bool writeNN(char* filename, nNetwork* NN){
 	if (!writeMtrx(file, NN->weights[i], NN->depths[i], NN->depths[i+1])){ 
 	    return false;
 	}
-	if (!writeMtrx(file, NN->bias[i], NN->depths[i], NN->depths[i+1])){ 
-	    return false;
+	if (fwrite (NN->bias[i], sizeof(double*), NN->depths[i+1], file)!= NN->depths[i+1]){
+    	    return false;
 	}
     }
     if (fclose (file) == EOF){return false;}
     printf (">Saved!\n");
     return true;
-}
-
-//free a buffer nNetwork that hasn't had its w and b initialized
-void freeBuffNN(nNetwork* buff){
-    free(buff->weights);
-    free(buff->bias);
-    free(buff->depths);
-    buff->depths=NULL;
-    freeNN(buff);
 }
 
 //read a nNetwork from a file
@@ -80,7 +71,7 @@ nNetwork* readNN(char* filename){
 	free(depths);
 	return NULL;
     }
-    printf ("=\n");
+    printf ("=");
     nNetwork* NN=createNN(len,depths);
     free(depths);
     for (int i=0; i<NN->len-1; i++){
@@ -88,7 +79,7 @@ nNetwork* readNN(char* filename){
 	    freeNN(NN);
 	    return NULL;
 	}
-	if (!readMtrx(file, NN->bias[i], NN->depths[i], NN->depths[i+1])){ 	    
+	if (fread (NN->bias[i], sizeof(double*), NN->depths[i+1], file)!= NN->depths[i+1]){ 	    
 	    freeNN(NN);
 	    return NULL;
 	}
