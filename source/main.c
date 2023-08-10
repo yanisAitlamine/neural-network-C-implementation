@@ -27,17 +27,26 @@ int main()
 	printNN(NN);
 	if (!writeNN (file, NN)){ERROR("failed to write");}
 	freeNN(NN);*/
-	nNetwork* nn = readNN(file);
-	if (nn==NULL||nn->failFlag){
+	nNetwork* NN = readNN(file);
+	if (NN==NULL||NN->failFlag){
 		ERROR("NN 2 is NULL!\n");
-		freeNN(nn);
+		freeNN(NN);
 		return 1;
 	}
-	printNN(nn);
-	freeNN(nn);
+	printNN(NN);
 	double input[]={1,0};
-	double output[1];
-	compute (input, output, nn);
-	printf ("output %ld",*output);
+	double** output=(double**)malloc(sizeof(double*));
+	*output=(double*)malloc(NN->depths[NN->len-1]*sizeof(double));
+	compute (input, output, NN);
+	printf ("output: [");
+	for (int i=0;i<NN->depths[NN->len-1];i++){
+		printf("%f",(*output)[i]);
+		if (i<NN->depths[NN->len-1]-1){
+			printf (", ");
+		} else {
+			printf ("]\n");
+		}
+	}
+	freeNN(NN);
 	return 0;
 }

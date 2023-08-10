@@ -32,8 +32,9 @@ nNetwork* createNN(size_t len, size_t* depths){
 	}
 	printf("depths\t ");
 	NN->depths[0]=depths[0];
+	printf ("layer %d:%ld\t",0,depths[0]);
 	for (int i=0;i<len-1;i++){
-	    printf ("layer %d:%ld\t",i,depths[i]);
+	    printf ("layer %d:%ld\t",i+1,depths[i+1]);
 	    NN->depths[i+1]=depths[i+1];
 	    if(alloc_mtrx(&(NN->weights[i]), NN->depths[i],NN->depths[i+1])) return NN;
 	    if (alloc_mtrx(&(NN->bias[i]), NN->depths[i],NN->depths[i+1])) return NN;
@@ -51,7 +52,7 @@ bool alloc_mtrx(double*** mtrx, size_t len, size_t depth){
     for (int y=0;y<len;y++){
 	(*mtrx)[y]=(double*)malloc(depth*sizeof(double));
 	if (check_malloc((*mtrx)[y],"Init failed at row: ")){
-	    printf ("%d,%d!\n",len,y);
+	    printf ("%ld,%d!\n",len,y);
 	    return true;
 	}
     }

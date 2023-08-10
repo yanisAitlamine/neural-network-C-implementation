@@ -3,7 +3,7 @@
 #include <stdbool.h>
 #include "neuralnet.h"
 
-#define ERROR(message) printf(message);return true
+#define ERROR(message) printf("%s",message);return true
 
 bool check_malloc(void* data,char* message);
 #endif
