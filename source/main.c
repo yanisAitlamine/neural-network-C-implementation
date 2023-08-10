@@ -73,17 +73,9 @@ int main()
 	printf ("]\n");
 	printf ("costs: [");
 	for (int i=0;i<NB_IN;i++){
-		printf ("[");
-		for (int y=0;y<DP_OUT;y++){
-			printf("%f",cost(expected[i][y],output[i][y],BINARY));
-			if (y<DP_OUT-1){
-				printf (", ");
-			}
-		}
+		printf("%f",avg_cost(expected[i],output[i],DP_OUT,MULTICLASS));
 		if (i<NB_IN-1){
-			printf ("],");
-		} else {
-			printf ("]");
+			printf (", ");
 		}
 	}
 	printf ("]\n");
