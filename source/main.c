@@ -8,16 +8,15 @@
 #include "in_outNN.h"
 #include "compute.h"
 #define NB_IN 4
-#define DP_IN 2
-#define DP_OUT 1
+#define DP_IN 4
+#define DP_OUT 2
 int main()
 {	
 	srand(time(0));
-	double train_data[NB_IN][DP_IN+DP_OUT]={{1,0,1},{0,1,1},{1,1,0},{0,0,0}};
+	double train_data[NB_IN][DP_IN+DP_OUT]={{1,0,1,0,1,1},{0,1,0,1,1,1},{1,1,1,1,0,0},{0,0,0,0,0,0}};
 	char* file="NNtest.nn";
-/*	size_t len=3;
-	size_t depths[]={2,2,1};
-	char* file="NNtest.nn";
+	size_t len=4;
+	size_t depths[]={4,4,4,2};
 	nNetwork* NN = createNN( len, depths);
 	if (NN==NULL||NN->failFlag){
 		ERROR("NN is NULL!\n");
@@ -27,8 +26,8 @@ int main()
 	fillNN(NN);
 	printNN(NN);
 	if (!writeNN (file, NN)){ERROR("failed to write");}
-	freeNN(NN);*/
-	nNetwork* NN = readNN(file);
+	freeNN(NN);
+	NN = readNN(file);
 	if (NN==NULL||NN->failFlag){
 		ERROR("NN 2 is NULL!\n");
 		freeNN(NN);
