@@ -9,6 +9,9 @@ struct nNetwork{
 	size_t* depths;
 	double*** weights;
 	double** bias;
+	double*** weightsGrd;
+	double** biasGrd;
+	double*** activations;
 };
 
 nNetwork* createNN(size_t len, size_t* depths);

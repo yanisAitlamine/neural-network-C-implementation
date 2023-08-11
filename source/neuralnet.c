@@ -25,8 +25,23 @@ nNetwork* createNN(size_t len, size_t* depths){
 	    NN->failFlag=true;
 	    return NN;
 	}
+	NN->weightsGrd=(double***)malloc((len-1)*sizeof(double**));
+	if (check_malloc(NN->weightsGrd,"WeightsGrd init failed!\n")){
+	    NN->failFlag=true;
+	    return NN;
+	}
 	NN->bias=(double**)malloc((len-1)*sizeof(double*));
 	if (check_malloc(NN->bias,"Bias init failed!\n")){
+	    NN->failFlag=true;
+	    return NN;
+	}
+	NN->biasGrd=(double**)malloc((len-1)*sizeof(double*));
+	if (check_malloc(NN->biasGrd,"biasGrd init failed!\n")){
+	    NN->failFlag=true;
+	    return NN;
+	}
+	NN->activations=(double***)malloc((len)*sizeof(double**));
+	if (check_malloc(NN->activations,"activations init failed!\n")){
 	    NN->failFlag=true;
 	    return NN;
 	}
@@ -36,9 +51,13 @@ nNetwork* createNN(size_t len, size_t* depths){
 	for (int i=0;i<len-1;i++){
 	    printf ("layer %d:%ld\t",i+2,depths[i+1]);
 	    NN->depths[i+1]=depths[i+1];
+ 	    if(alloc_mtrx(&(NN->weightsGrd[i]), NN->depths[i],NN->depths[i+1])) return NN;
+	    if (alloc_table(&(NN->biasGrd[i]), NN->depths[i+1])) return NN;
 	    if(alloc_mtrx(&(NN->weights[i]), NN->depths[i],NN->depths[i+1])) return NN;
 	    if (alloc_table(&(NN->bias[i]), NN->depths[i+1])) return NN;
+	    if (alloc_mtrx(&(NN->activations[i]), NN->depths[i],2)) return NN;
 	}
+	if (alloc_mtrx(&(NN->activations[len-1]), NN->depths[len-1],2)) return NN;
 	printf("\nSuccesfully created!\n");
 	return NN;
 }
@@ -117,11 +136,14 @@ void freeNN(nNetwork* NN){
 	    if (NN->weights!=NULL){	
 		for (int i=0;i<NN->len-1;i++){
 		    free_mtrx(&(NN->weights[i]), NN->depths[i]);
-		}
-		free(NN->weights);
-		for (int i=0;i<NN->len-1;i++){
 		    free(NN->bias[i]);
+		    free_mtrx(&(NN->weightsGrd[i]), NN->depths[i]);
+		    free(NN->biasGrd[i]);
+		    free_mtrx(&(NN->activations[i]),NN->depths[i]);
 		}
+		free_mtrx(&(NN->activations[NN->len-1]),NN->depths[NN->len-1]);
+		free(NN->weights);
+		free(NN->activations);
 		free(NN->bias);
 	    }
 	    free(NN->depths);
@@ -135,8 +157,8 @@ void free_mtrx(double ***data, size_t depth){
     if (*data!=NULL){
 	printf ("Free matrix of size %ld!\n",depth);
 	for (int i=0;i<depth;i++){
-	    if (*(data+i)!=NULL) free((*data)[i]);
-	}
+	    free((*data)[i]);
+	} 
 	free(*data);
     }
 }
