@@ -8,7 +8,7 @@
 //dC/dAn
 #define DERIV 2
 //prime of smoothing func on zn
-#define ZNPRIME
+#define ZNPRIME	3
 
 typedef struct nNetwork nNetwork;
 struct nNetwork{

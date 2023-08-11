@@ -146,14 +146,24 @@ void compute_grd(double *expected, nNetwork *NN, int function){
                     break;
                 }
             }else{
-                NN->activations[i+1][x][DERIV]=sum_W_Zn_Deriv(i+1,NN);
+                NN->activations[i+1][x][DERIV]=sum_W_Zn_Deriv(i+1,x,NN);
             }
             for (int y=0;y<NN->depths[i+1];y++){
                 NN->weightsGrd[i][x][y]=0;
-                NN->weightsGrd[i][x][y]=NN->activations[i][x][AN]*NN->[i+1][x][ZNPRIME]*NN->activations[i+1][x][DERIV];
- 
-                
+                NN->weightsGrd[i][x][y]=NN->activations[i][x][AN]*NN->activations[i+1][x][ZNPRIME]*NN->activations[i+1][x][DERIV];               
+            }
+            for (int y=0;y<NN->depths[i];y++){
+                NN->biasGrd[i][x]=0;
+                NN->biasGrd[i][x]=NN->activations[i+1][x][ZNPRIME]*NN->activations[i+1][x][DERIV];               
             }
         }
     }
+}
+
+double sum_W_Zn_Deriv(int rank, int ndnum, nNetwork* NN){
+    double result = 0;
+    for (int i=rank;i<NN->depths[rank+1];i++){
+        result+=NN->weights[rank][ndnum][i]*NN->activations[rank+1][i][ZNPRIME]*NN->activations[rank+1][i][DERIV];
+    }
+    return result;
 }
