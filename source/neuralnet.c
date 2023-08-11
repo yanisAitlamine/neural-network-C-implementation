@@ -55,7 +55,8 @@ nNetwork* createNN(size_t len, size_t* depths){
 	    if (alloc_table(&(NN->biasGrd[i]), NN->depths[i+1])) return NN;
 	    if(alloc_mtrx(&(NN->weights[i]), NN->depths[i],NN->depths[i+1])) return NN;
 	    if (alloc_table(&(NN->bias[i]), NN->depths[i+1])) return NN;
-	    if (alloc_mtrx(&(NN->activations[i]), NN->depths[i],2)) return NN;
+//the activation table store the activation, the activation without the smoothing function, the derivative of C with regard to that node activation
+	    if (alloc_mtrx(&(NN->activations[i]), NN->depths[i],4)) return NN;
 	}
 	if (alloc_mtrx(&(NN->activations[len-1]), NN->depths[len-1],2)) return NN;
 	printf("\nSuccesfully created!\n");

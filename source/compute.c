@@ -67,6 +67,10 @@ double binary_prime(double expected, double output){
     return (expected/output)-((1-expected)/(1-output));
 }
 
+double sqr_prime(double expected, double output){
+    return 2*(expected-output);
+}
+
 // compute binary cost
 double binary_cost(double expected, double output){
     return -((expected*log(output))+((1-expected)*log(1-output)));
@@ -122,4 +126,34 @@ double avg_cost(double *expected, double *output, int len, int function){
             break;
     }
     return ERR;
+}
+
+void compute_grd(double *expected, nNetwork *NN, int function){
+    for (int i=NN->len-2;i>=0;i--){
+        for (int x=0;x<NN->depths[i];x++){
+            NN->activations[i+1][x][DERIV]=0;
+            NN->activations[i+1][x][ZNPRIME]=sigmoidprime(NN->activations[i+1][x][ZN]);
+            if (i==NN->len-2){ 
+                switch (function){
+                    case BINARY:
+                        NN->activations[i+1][x][DERIV]=binary_prime(expected[x],NN->activations[i+1][x][AN]);
+                    break;
+                    case SQR_REG:
+                        NN->activations[i+1][x][DERIV]=sqr_prime(expected[x],NN->activations[i+1][x][AN]);
+                    break;
+                    case REGRESSION:
+                        NN->activations[i+1][x][DERIV]=1;
+                    break;
+                }
+            }else{
+                NN->activations[i+1][x][DERIV]=sum_W_Zn_Deriv(i+1,NN);
+            }
+            for (int y=0;y<NN->depths[i+1];y++){
+                NN->weightsGrd[i][x][y]=0;
+                NN->weightsGrd[i][x][y]=NN->activations[i][x][AN]*NN->[i+1][x][ZNPRIME]*NN->activations[i+1][x][DERIV];
+ 
+                
+            }
+        }
+    }
 }

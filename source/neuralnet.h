@@ -1,6 +1,14 @@
 #ifndef NN_H
 #define NN_H
 #include <stdbool.h>
+//actual activation
+#define AN 0
+//not smoothed activation
+#define	ZN 1
+//dC/dAn
+#define DERIV 2
+//prime of smoothing func on zn
+#define ZNPRIME
 
 typedef struct nNetwork nNetwork;
 struct nNetwork{
