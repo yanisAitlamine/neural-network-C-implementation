@@ -58,7 +58,7 @@ nNetwork* createNN(size_t len, size_t* depths){
 //the activation table store the activation, the activation without the smoothing function, the derivative of C with regard to that node activation
 	    if (alloc_mtrx(&(NN->activations[i]), NN->depths[i],4)) return NN;
 	}
-	if (alloc_mtrx(&(NN->activations[len-1]), NN->depths[len-1],2)) return NN;
+	if (alloc_mtrx(&(NN->activations[len-1]), NN->depths[len-1],4)) return NN;
 	printf("\nSuccesfully created!\n");
 	return NN;
 }
@@ -104,6 +104,22 @@ void fillNN(nNetwork* NN){
     printf ("Filling done!\n");
 }
 
+//Update weights and bias with Grd and learing rate
+void updateNN(nNetwork* NN, double learning_rate){
+    printf ("updating neural net of size %ld with LR %f!\n",NN->len,learning_rate);
+    for (int i=0;i<NN->len-1;i++){
+        for (int x=0;x<NN->depths[i];x++){
+	    for (int y=0; y<NN->depths[i+1];y++){	
+		NN->weights[i][x][y]+=NN->weightsGrd[i][x][y]*learning_rate;
+	    }
+	}
+	for (int y=0;y<NN->depths[i+1];y++){
+	    NN->bias[i][y]+=NN->biasGrd[i][y]*learning_rate;
+	}
+    }
+    printf ("Updating done!\n");
+}
+
 //Print weights and bias
 void printNN(nNetwork* NN){
     printf ("Printing neural net of size %ld!\n",NN->len);
@@ -128,6 +144,29 @@ void printNN(nNetwork* NN){
     } 
 }
 
+//Print weights and bias Grd
+void printNNGrd(nNetwork* NN){
+    printf ("Printing neural net Grd of size %ld!\n",NN->len);
+    for (int i=0;i<NN->len-1;i++){
+	printf ("===================================================================\n");
+	printf("Layer %d->%d\tlen: %ld\tdepth: %ld\n",i+1,i+2,NN->depths[i],NN->depths[i+1]);
+	printf ("===================================================================\n");
+    	for (int x=0;x<NN->depths[i];x++){
+	    printf("[");
+	    for (int y=0; y<NN->depths[i+1];y++){
+		printf("%f",NN->weightsGrd[i][x][y]);
+		if (y<NN->depths[i+1]-1) printf(", ");
+	    }
+	    printf("]");
+	}    	
+	printf("\n[");
+    	for (int x=0;x<NN->depths[i+1];x++){
+	    printf("%.1f",NN->biasGrd[i][x]);
+	    if (x<NN->depths[i+1]-1) printf(", ");
+	}
+	printf("]\n");
+    } 
+}
 
 // Free a neural network object
 void freeNN(nNetwork* NN){
@@ -156,7 +195,6 @@ void freeNN(nNetwork* NN){
 
 void free_mtrx(double ***data, size_t depth){
     if (*data!=NULL){
-	printf ("Free matrix of size %ld!\n",depth);
 	for (int i=0;i<depth;i++){
 	    free((*data)[i]);
 	} 

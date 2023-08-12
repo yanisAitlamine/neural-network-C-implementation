@@ -23,7 +23,7 @@ double sum_cost(double *expected, double *output, int len, int function);
 double MSE_cost(double *expected, double *output, int len);
 double MAE_cost(double *expected, double *output, int len);
 double multiclass_cost(double *expected, double *output, int len);
-double avg_cost(double *expected, double *output, int len, int function);
+double multnode_cost(double *expected, double *output, int len, int function);
 void compute_grd(double *expected, nNetwork *NN, int function);
 double sum_W_Zn_Deriv(int rank, int ndnum, nNetwork* NN);
 #endif
