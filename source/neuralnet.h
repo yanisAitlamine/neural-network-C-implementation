@@ -31,4 +31,5 @@ void printNN(nNetwork* NN);
 void printNNGrd(nNetwork* NN);
 void freeNN (nNetwork* NN);
 void free_mtrx(double ***data, size_t depth);
+void multiply_grd(nNetwork* NN, double value);
 #endif

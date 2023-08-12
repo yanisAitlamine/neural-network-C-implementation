@@ -117,7 +117,6 @@ void updateNN(nNetwork* NN, double learning_rate){
 	    NN->bias[i][y]+=NN->biasGrd[i][y]*learning_rate;
 	}
     }
-    printf ("Updating done!\n");
 }
 
 //Print weights and bias
@@ -189,7 +188,6 @@ void freeNN(nNetwork* NN){
 	    free(NN->depths);
 	}
     free(NN);
-    printf("Freed!\n");
     }
 }
 
@@ -200,4 +198,15 @@ void free_mtrx(double ***data, size_t depth){
 	} 
 	free(*data);
     }
+}
+
+void multiply_grd(nNetwork* NN, double value){
+	for (int i=0;i<NN->len-1;i++){
+		for (int x=0;x<NN->depths[i];x++){
+			NN->biasGrd[i][x]*=value;
+			for (int y=0;y<NN->depths[i+1];y++){
+				NN->weightsGrd[i][x][y]*=value;
+			}
+		}
+	}
 }
