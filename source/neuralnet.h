@@ -26,7 +26,7 @@ nNetwork* createNN(size_t len, size_t* depths);
 bool alloc_mtrx(double ***mtrx, size_t len, size_t depth);
 bool alloc_table(double** mtrx, size_t len);
 void fillNN(nNetwork* NN);
-void updateNN(nNetwork* NN, double learning_rate);
+void updateNN(nNetwork* NN, double learning_rate, bool debug);
 void printNN(nNetwork* NN);
 void printNNGrd(nNetwork* NN);
 void freeNN (nNetwork* NN);

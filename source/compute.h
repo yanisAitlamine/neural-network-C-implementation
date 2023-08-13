@@ -13,7 +13,7 @@
 double sigmoid(double n);
 double sigmoidprime(double n);
 void splitData(int num_obj, int len_in, int len_out, double ***data, double*** input, double*** expected);
-void compute(double *input, double **output, nNetwork *NN);
+void compute(double *input, double **output, nNetwork *NN, bool debug);
 double regression_cost(double expected, double output);
 double sqr_regression(double expected, double output);
 double binary_prime(double expected, double output);
@@ -24,7 +24,8 @@ double MSE_cost(double *expected, double *output, int len);
 double MAE_cost(double *expected, double *output, int len);
 double multiclass_cost(double *expected, double *output, int len);
 double multnode_cost(double *expected, double *output, int len, int function);
-void compute_grd(double *expected, nNetwork *NN, int function);
+void compute_grd(double *expected, nNetwork *NN, int function,bool debug);
 double sum_W_Zn_Deriv(int rank, int ndnum, nNetwork* NN);
-void batch(double **expected, double **input, double **output, nNetwork* NN, int size_batch, double learning_rate, int function);
+void batch(double **expected, double **input, double **output, nNetwork* NN, int size_batch, double learning_rate, int function,bool debug);
+void train(double **expected, double **input, double **output, nNetwork* NN, int size_batch, double learning_rate, int function, int epochs, bool debug); 
 #endif

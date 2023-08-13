@@ -105,8 +105,8 @@ void fillNN(nNetwork* NN){
 }
 
 //Update weights and bias with Grd and learing rate
-void updateNN(nNetwork* NN, double learning_rate){
-    printf ("updating neural net of size %ld with LR %f!\n",NN->len,learning_rate);
+void updateNN(nNetwork* NN, double learning_rate, bool debug){
+    if (debug)printf ("updating neural net of size %ld with LR %f!\n",NN->len,learning_rate);
     for (int i=0;i<NN->len-1;i++){
         for (int x=0;x<NN->depths[i];x++){
 	    for (int y=0; y<NN->depths[i+1];y++){	

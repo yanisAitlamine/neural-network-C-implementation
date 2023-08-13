@@ -8,18 +8,17 @@
 #include "errors.h"
 #include "in_outNN.h"
 #include "compute.h"
-#define NB_IN 8 
+#define NB_IN 4 
 #define DP_IN 2
 #define DP_OUT 1
-#define LR 0.9999
+#define LR 0.1
+#define EPOCHS 10000
+#define DEBUG false
+
 int main()
 {	
 	srand(time(0));
 	double*** train_data = (double **[]){
-        (double *[]){(double[]){1.0, 0.0}, (double[]){1.0}},
-        (double *[]){(double[]){0.0, 1.0}, (double[]){1.0}},
-        (double *[]){(double[]){1.0, 1.0}, (double[]){0.0}},
-	(double *[]){(double[]){0.0, 0.0}, (double[]){0.0}},
         (double *[]){(double[]){1.0, 0.0}, (double[]){1.0}},
         (double *[]){(double[]){0.0, 1.0}, (double[]){1.0}},
         (double *[]){(double[]){1.0, 1.0}, (double[]){0.0}},
@@ -63,7 +62,23 @@ int main()
 			return 1;
 		}
 	}
-	batch(expected, input, output, NN, NB_IN, LR, MSE);
+	train(expected, input, output, NN, NB_IN, LR, MSE,EPOCHS,DEBUG);
+
+	for (int i=0;i<NB_IN;i++){
+		compute (input[i], &(output[i]), NN,DEBUG);
+		printf ("output: [[");
+		for (int y=0;y<NN->depths[NN->len-1];y++){
+			printf("%f",output[i][y]);
+			if (y<NN->depths[NN->len-1]-1){
+				printf (", ");
+			}
+		}
+		printf ("]");
+		printf ("]\ncosts: [");
+		printf("%f",multnode_cost(expected[i],output[i],NN->depths[NN->len-1],MSE));
+		printf ("]\n");
+	}
+	printNN(NN);
 	free_mtrx(&output, NB_IN);
 	free_mtrx(&input, NB_IN);
 	free_mtrx(&expected, NB_IN);
