@@ -12,7 +12,7 @@
 #define DP_IN 4
 #define DP_OUT 1
 #define LR 0.10000
-#define EPOCHS 1
+#define EPOCHS 10000
 #define DEBUG false
 
 int main()
