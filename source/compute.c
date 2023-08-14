@@ -28,7 +28,8 @@ void compute(double *input, double **output, nNetwork *NN,bool debug){
     for (int i=0;i<NN->len-1;i++){
         for (int y=0;y<NN->depths[i+1];y++){
             NN->activations[i+1][y][0]=0;
-            NN->activations[i+1][y][1]=NN->bias[i][y];
+            NN->activations[i+1][y][1]=0;
+            NN->activations[i+1][y][1]+=NN->bias[i][y];
             for (int x=0;x<NN->depths[i];x++){
                 NN->activations[i+1][y][1]+=(NN->activations[i][x][0]*NN->weights[i][x][y]); 
             }

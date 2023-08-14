@@ -210,8 +210,10 @@ void free_mtrx(double **data, size_t depth){
 
 void multiply_grd(nNetwork* NN, double value){
 	for (int i=0;i<NN->len-1;i++){
-		for (int x=0;x<NN->depths[i];x++){
-			NN->biasGrd[i][x]*=value;
+		for (int x=0;x<NN->depths[i+1];x++){   
+		    NN->biasGrd[i][x]*=value;
+		}
+		for (int x=0;x<NN->depths[i];x++){	
 			for (int y=0;y<NN->depths[i+1];y++){
 				NN->weightsGrd[i][x][y]*=value;
 			}
