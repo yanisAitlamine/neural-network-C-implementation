@@ -11,7 +11,7 @@
 #define NB_IN 16 
 #define DP_IN 4
 #define DP_OUT 1
-#define LR 0.1
+#define LR 0.10000
 #define EPOCHS 1
 #define DEBUG false
 
