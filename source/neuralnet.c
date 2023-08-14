@@ -70,9 +70,8 @@ bool alloc_mtrx(double*** mtrx, size_t len, size_t depth){
 	return true;
     }
     for (int y=0;y<len;y++){
-	(*mtrx)[y]=(double*)malloc(depth*sizeof(double));
-	if (check_malloc((*mtrx)[y],"Init failed at row: ")){
-	    printf ("%ld,%d!\n",len,y);
+	if (alloc_table(&((*mtrx)[y]),depth)){
+	    printf ("Failed init at row %d!\n",y);
 	    return true;
 	}
     }
@@ -82,7 +81,7 @@ bool alloc_mtrx(double*** mtrx, size_t len, size_t depth){
 //Allocate space for a table
 bool alloc_table(double** mtrx, size_t len){
     *mtrx=(double*)malloc(len*sizeof(double));
-    if (check_malloc(*mtrx,"Mtrx init failed!\n")){
+    if (check_malloc(*mtrx,"Table init failed!\n")){
 	return true;
     }
     return false;
@@ -172,18 +171,28 @@ void freeNN(nNetwork* NN){
     if (NN!=NULL){
 	printf ("Free network of size %ld!\n",NN->len);
 	if (NN->depths!=NULL){
-	    if (NN->weights!=NULL){	
+	    if (NN->weights!=NULL){
 		for (int i=0;i<NN->len-1;i++){
-		    free_mtrx(&(NN->weights[i]), NN->depths[i]);
+		    free_mtrx((NN->weights[i]), NN->depths[i]);
+		    free(NN->weights[i]);
 		    free(NN->bias[i]);
-		    free_mtrx(&(NN->weightsGrd[i]), NN->depths[i]);
-		    free(NN->biasGrd[i]);
-		    free_mtrx(&(NN->activations[i]),NN->depths[i]);
+		    if (NN->weightsGrd!=NULL){
+			free_mtrx((NN->weightsGrd[i]), NN->depths[i]);
+			free(NN->weightsGrd[i]);
+		    }
+		    if (NN->biasGrd!=NULL)free(NN->biasGrd[i]);
+		    free_mtrx(NN->activations[i],NN->depths[i]);
+		    free(NN->activations[i]);
 		}
-		free_mtrx(&(NN->activations[NN->len-1]),NN->depths[NN->len-1]);
+		free_mtrx((NN->activations[NN->len-1]),NN->depths[NN->len-1]);
+		free(NN->activations[NN->len-1]);
 		free(NN->weights);
 		free(NN->activations);
 		free(NN->bias);
+		if (NN->weightsGrd!=NULL&&NN->biasGrd!=NULL){
+		    free(NN->weightsGrd);
+		    free(NN->biasGrd);
+		}
 	    }
 	    free(NN->depths);
 	}
@@ -191,12 +200,11 @@ void freeNN(nNetwork* NN){
     }
 }
 
-void free_mtrx(double ***data, size_t depth){
-    if (*data!=NULL){
+void free_mtrx(double **data, size_t depth){
+    if (data!=NULL){
 	for (int i=0;i<depth;i++){
-	    free((*data)[i]);
+	    if (data[i]!=NULL)free(data[i]);
 	} 
-	free(*data);
     }
 }
 
