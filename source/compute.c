@@ -11,7 +11,7 @@ double sigmoidprime(double n){
     return (n)*(1-(n));
 }
 
-void compute(double *input, double **output, nNetwork *NN,bool debug){
+void compute(double *input, nNetwork *NN,bool debug){
     size_t maxsize=0;
     if (debug){printf ("Computing with inputs: [");
         for ( int i=0;i<NN->depths[0];i++){
@@ -43,9 +43,6 @@ void compute(double *input, double **output, nNetwork *NN,bool debug){
                 printf ("|");
             }
         }
-    for (int i=0;i<NN->depths[NN->len-1];i++){
-        (*output)[i]=NN->activations[NN->len-1][i][0];
-    }
     if (debug)printf (">Finished\n");
 }
 
@@ -112,27 +109,27 @@ double cost (double expected, double output, int function){
     return ERR;
 }
 
-double sum_cost(double *expected, double *output, int len, int function){
+double sum_cost(double *expected, double **output, int len, int function){
     double local_cost=0;
     for (int i=0;i<len;i++){
-        local_cost+=cost(expected[i],output[i],function);
+        local_cost+=cost(expected[i],output[i][AN],function);
     }
     return local_cost;
 }
 
-double MSE_cost(double* expected, double* output, int len){
+double MSE_cost(double* expected, double** output, int len){
     return sum_cost(expected, output,len,SQR_REG)/len;
 }
 
-double MAE_cost(double* expected, double* output, int len){
+double MAE_cost(double* expected, double** output, int len){
     return sum_cost(expected, output,len,REGRESSION)/len;
 }
 
-double multiclass_cost(double* expected, double* output, int len){
+double multiclass_cost(double* expected, double** output, int len){
     return sum_cost(expected, output,len,BINARY);
 }
 
-double multnode_cost(double *expected, double *output, int len, int function){
+double multnode_cost(double *expected, double **output, int len, int function){
     switch (function){
         case MSE:
             return MSE_cost(expected,output,len);
@@ -192,10 +189,10 @@ double sum_W_Zn_Deriv(int rank, int ndnum, nNetwork* NN){
     return result;
 }
 
-void batch(double **expected, double **input, double **output, nNetwork* NN, int size_batch, double learning_rate, int function, bool debug){
+void batch(double **expected, double **input, nNetwork* NN, int size_batch, double learning_rate, int function, bool debug){
 	multiply_grd(NN, 0);
 	for  (int i=0;i<size_batch;i++){
-		compute (input[i], &(output[i]), NN,debug);
+		compute (input[i], NN,debug);
 		compute_grd(expected[i],NN,function,debug);
 	}
 	multiply_grd(NN, pow(size_batch,-1));
@@ -204,16 +201,16 @@ void batch(double **expected, double **input, double **output, nNetwork* NN, int
 	if (debug)printNN(NN);
 }
 
-void train(double **expected, double **input, double **output, nNetwork* NN, int size_batch, double learning_rate, int function, int epochs, bool debug){
+void train(double **expected, double **input, nNetwork* NN, int size_batch, double learning_rate, int function, int epochs, bool debug){
    printf ("training for %d epochs over batch of size %d\n",epochs, size_batch);
     for (int i=0;i<=epochs;i++){
-        batch(expected,input,output,NN,size_batch,learning_rate,function,false);
+        batch(expected,input,NN,size_batch,learning_rate,function,false);
         for (int y=0;y<=10;y++) {
             if (y*(epochs/10)==i) {
                 printf("=");
                 if (debug){
                     printf("epochs nb %d\n",i);
-                    batch(expected,input,output,NN,size_batch,learning_rate,function,true);
+                    batch(expected,input,NN,size_batch,learning_rate,function,true);
                 }
             }
         }
