@@ -53,3 +53,4 @@ dkms.conf
 
 #matrix files
 *.nn
+./source/main.c
