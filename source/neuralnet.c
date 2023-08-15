@@ -168,43 +168,34 @@ void printNNGrd(nNetwork* NN){
 
 // Free a neural network object
 void freeNN(nNetwork* NN){
-    if (NN!=NULL){
-	printf ("Free network of size %ld!\n",NN->len);
-	if (NN->depths!=NULL){
-	    if (NN->weights!=NULL){
-		for (int i=0;i<NN->len-1;i++){
-		    free_mtrx((NN->weights[i]), NN->depths[i]);
-		    free(NN->weights[i]);
-		    free(NN->bias[i]);
-		    if (NN->weightsGrd!=NULL){
-			free_mtrx((NN->weightsGrd[i]), NN->depths[i]);
-			free(NN->weightsGrd[i]);
-		    }
-		    if (NN->biasGrd!=NULL)free(NN->biasGrd[i]);
-		    free_mtrx(NN->activations[i],NN->depths[i]);
-		    free(NN->activations[i]);
-		}
-		free_mtrx((NN->activations[NN->len-1]),NN->depths[NN->len-1]);
-		free(NN->activations[NN->len-1]);
-		free(NN->weights);
-		free(NN->activations);
-		free(NN->bias);
-		if (NN->weightsGrd!=NULL&&NN->biasGrd!=NULL){
-		    free(NN->weightsGrd);
-		    free(NN->biasGrd);
-		}
-	    }
-	    free(NN->depths);
-	}
+    if (NN==NULL){return;}
+    printf ("Free network of size %ld!\n",NN->len);
+    free3D_mtrx(NN->weights,NN->len-1,NN->depths);
+    free3D_mtrx(NN->weightsGrd,NN->len-1,NN->depths);
+    free_mtrx(NN->bias,NN->len-1);
+    free_mtrx(NN->biasGrd,NN->len-1);
+    free3D_mtrx(NN->activations,NN->len,NN->depths);
+    free(NN->depths);
     free(NN);
+}
+
+void free3D_mtrx(double ***data, size_t len, size_t* depths){
+    if (data==NULL) return;
+    for (int i=0;i<len;i++){
+	for (int y=0;y<depths[i];y++){
+	    if (data[i][y]!=NULL) free(data[i][y]);
+	}
+	if (data[i]!=NULL)free(data[i]);
     }
+    free (data);
 }
 
 void free_mtrx(double **data, size_t depth){
     if (data!=NULL){
 	for (int i=0;i<depth;i++){
 	    if (data[i]!=NULL)free(data[i]);
-	} 
+	}
+	free(data);
     }
 }
 

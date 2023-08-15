@@ -28,6 +28,26 @@ void freeBuffer() {
     }
 }
 
+double*** init_data_matrix(int nb_sample,int depth_in, int depth_out){
+    double*** data = (double***)calloc(nb_sample,sizeof(double**));
+    if (check_malloc(data,"data matrix alloc failed")) return NULL;
+    for (int i=0;i<nb_sample;i++){
+	    data[i]=(double**)calloc(2,sizeof(double*));
+	    data[i][0]=(double*)calloc(depth_in,sizeof(double));
+	    data[i][1]=(double*)calloc(depth_out,sizeof(double));
+    }
+    return data;
+}
+
+void free_data_mtrx(double*** data, int nb_sample){
+    for (int i=0;i<nb_sample;i++){
+	    free(data[i][0]);
+	    free(data[i][1]);
+	    free(data[i]);
+    }
+    free(data);
+}
+
 //write a NN to a file
 bool writeNN(char* filename, nNetwork* NN){
     printf ("Saving neural net of size %ld!\n",NN->len);

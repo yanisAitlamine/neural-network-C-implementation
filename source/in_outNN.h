@@ -8,4 +8,6 @@ bool writeNN(char* filename, nNetwork* NN);
 nNetwork* readNN(char* filename);
 bool readMtrx (FILE* file, double** mtrx, size_t len, size_t depth);
 bool writeMtrx (FILE* file, double** mtrx, size_t len, size_t depth);
+double*** init_data_matrix(int nb_sample,int depth_in, int depth_out);
+void free_data_mtrx(double*** data, int nb_sample);
 #endif // READ_H_INCLUDED
