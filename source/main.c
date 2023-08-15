@@ -8,12 +8,12 @@
 #include "errors.h"
 #include "in_outNN.h"
 #include "compute.h"
-#define NB_IN 16 
+#define NB_IN 28 
 #define DP_IN 4
 #define DP_OUT 1
 #define LR 0.10000
 #define EPOCHS 100000
-#define DEBUG true
+#define DEBUG false
 
 int main()
 {
@@ -43,11 +43,17 @@ int main()
 
 		}
 		if (((int)train_data[i][0][0]^(int)train_data[i][0][1])&&((int)train_data[i][0][2]^(int)train_data[i][0][3])){
-			train_data[i][1][0]=1;
+			train_data[i++][1][0]=1;
+			if (i<NB_IN){
+				train_data[i][1][0]=1;
+				for (int x=0;x<DP_IN;x++)train_data[i][0][x]=train_data[i-1][0][x];
+			}
 		}else{
 			train_data[i][1][0]=0;
 		}
 	}
+	printf("shuffling data!\n");
+	shuffle(train_data,NB_IN,DP_IN,DP_OUT,3);
 	char* file="NNtest.nn";
 	nNetwork* NN=NULL;
 	if (fopen(file,"r")==NULL){
