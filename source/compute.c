@@ -4,8 +4,7 @@
 #include "compute.h"
 
 double sigmoid(double n){
-    double result=(1/(1+pow(EULER_NUMBER, -n)));
-    return result;
+    return (1/(1+pow(EULER_NUMBER, -n)));
 }
 
 double sigmoidprime(double n){
