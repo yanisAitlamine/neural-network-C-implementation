@@ -28,4 +28,6 @@ void compute_grd(double *expected, nNetwork *NN, int function,bool debug);
 double sum_W_Zn_Deriv(int rank, int ndnum, nNetwork* NN);
 void batch(double **expected, double **input, double **output, nNetwork* NN, int size_batch, double learning_rate, int function,bool debug);
 void train(double **expected, double **input, double **output, nNetwork* NN, int size_batch, double learning_rate, int function, int epochs, bool debug); 
+void printTrainData(double** expected, double** input,int len_data,int depthinput, double depthoutput);
+
 #endif
