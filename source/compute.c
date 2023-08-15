@@ -4,7 +4,8 @@
 #include "compute.h"
 
 double sigmoid(double n){
-    return (1/(1+pow(EULER_NUMBER, -n)));
+    double result=(1/(1+pow(EULER_NUMBER, -n)));
+    return result;
 }
 
 double sigmoidprime(double n){
@@ -27,13 +28,11 @@ void compute(double *input, double **output, nNetwork *NN,bool debug){
     for (int i=0;i<NN->depths[0];i++){NN->activations[0][i][0]=input[i];}
     for (int i=0;i<NN->len-1;i++){
         for (int y=0;y<NN->depths[i+1];y++){
-            NN->activations[i+1][y][0]=0;
-            NN->activations[i+1][y][1]=0;
-            NN->activations[i+1][y][1]+=NN->bias[i][y];
+            NN->activations[i+1][y][ZN]=NN->bias[i][y];
             for (int x=0;x<NN->depths[i];x++){
-                NN->activations[i+1][y][1]+=(NN->activations[i][x][0]*NN->weights[i][x][y]); 
+                NN->activations[i+1][y][ZN]+=(NN->activations[i][x][0]*NN->weights[i][x][y]); 
             }
-            NN->activations[i+1][y][0]=sigmoid(NN->activations[i+1][y][1]);
+            NN->activations[i+1][y][AN]=sigmoid(NN->activations[i+1][y][ZN]);
         } 
     }
     if (debug){
@@ -62,6 +61,15 @@ void splitData(int num_obj, int len_in, int len_out, double ***train_data, doubl
 	for (int i=0;i<num_obj;i++){
 		(*expected)[i]=(double*)malloc(len_out*sizeof(double));
 		for (int y=0;y<len_out;y++){(*expected)[i][y]=train_data[i][1][y];}
+	}
+}
+
+void printTrainData(double** expected, double** input,int len_data,int depthinput, double depthoutput){
+	for (int i=0;i<len_data;i++){
+		printf ("\nInput %d: ",i);
+		for (int y=0;y<depthinput;y++) printf("%.1f\t",input[i][y]);
+		printf ("\nExpected %d: ",i);
+		for (int y=0;y<depthoutput;y++) printf("%.1f\t",expected[i][y]);
 	}
 }
 
@@ -192,17 +200,22 @@ void batch(double **expected, double **input, double **output, nNetwork* NN, int
 		compute_grd(expected[i],NN,function,debug);
 	}
 	multiply_grd(NN, pow(size_batch,-1));
-	if (debug)printNN(NN);
+        if (debug) printNNGrd(NN);
 	updateNN(NN,learning_rate,debug);
+	if (debug)printNN(NN);
 }
 
 void train(double **expected, double **input, double **output, nNetwork* NN, int size_batch, double learning_rate, int function, int epochs, bool debug){
    printf ("training for %d epochs over batch of size %d\n",epochs, size_batch);
     for (int i=0;i<=epochs;i++){
-        batch(expected,input,output,NN,size_batch,learning_rate,function,debug);
+        batch(expected,input,output,NN,size_batch,learning_rate,function,false);
         for (int y=0;y<=10;y++) {
             if (y*(epochs/10)==i) {
                 printf("=");
+                if (debug){
+                    printf("epochs nb %d\n",i);
+                    batch(expected,input,output,NN,size_batch,learning_rate,function,true);
+                }
             }
         }
     }
