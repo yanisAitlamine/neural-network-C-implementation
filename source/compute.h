@@ -29,5 +29,6 @@ double sum_W_Zn_Deriv(int rank, int ndnum, nNetwork* NN);
 void batch(double **expected, double **input, double **output, nNetwork* NN, int size_batch, double learning_rate, int function,bool debug);
 void train(double **expected, double **input, double **output, nNetwork* NN, int size_batch, double learning_rate, int function, int epochs, bool debug); 
 void printTrainData(double** expected, double** input,int len_data,int depthinput, double depthoutput);
-
+void shuffle(double*** data,int len,int depth_in,int depth_out,int rounds);
+void swapTables(double ***data,int base,int target,int depth_in,int depth_out);
 #endif

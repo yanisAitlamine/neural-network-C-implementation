@@ -220,3 +220,26 @@ void train(double **expected, double **input, double **output, nNetwork* NN, int
     }
     printf(">Finished\n");
 }
+
+void shuffle(double*** data,int len,int depth_in,int depth_out,int rounds){
+    for (int a=0;a<rounds;a++){
+        for (int i=0;i<len;i++){
+            swapTables(data,i,len*(rand()/RAND_MAX),depth_in,depth_out);
+        }
+    }
+}
+
+void swapTables(double ***data,int base,int target,int depth_in,int depth_out){
+    double buffer;
+    for (int i=0;i<depth_in;i++){
+        buffer=data[base][0][i];
+        data[base][0][i]=data[target][0][i];
+        data[target][0][i]=buffer;
+    }
+    for (int i=0;i<depth_out;i++){
+        buffer=data[base][1][i];
+        data[base][1][i]=data[target][1][i];
+        data[target][1][i]=buffer;
+    }
+
+}
