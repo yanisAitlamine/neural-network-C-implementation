@@ -8,8 +8,8 @@
 #include "errors.h"
 #include "in_outNN.h"
 #include "compute.h"
-#define NB_IN 4 
-#define DP_IN 2
+#define NB_IN 28 
+#define DP_IN 4
 #define DP_OUT 1
 #define LR 0.10000
 #define EPOCHS 100000
@@ -42,9 +42,12 @@ int main()
 			} else {train_data[i][0][y]=train_data[i-1][0][y];}
 
 		}
-		if (((int)train_data[i][0][0]^(int)train_data[i][0][1])
-		){
-			train_data[i][1][0]=1;
+		if (((int)train_data[i][0][0]^(int)train_data[i][0][1])&&((int)train_data[i][0][2]^(int)train_data[i][0][3])){
+			train_data[i++][1][0]=1;
+			if (i<NB_IN){
+				train_data[i][1][0]=1;
+				for (int x=0;x<DP_IN;x++)train_data[i][0][x]=train_data[i-1][0][x];
+			}
 		}else{
 			train_data[i][1][0]=0;
 		}
@@ -52,8 +55,8 @@ int main()
 	char* file="NNtest.nn";
 	nNetwork* NN=NULL;
 	if (fopen(file,"r")==NULL){
-		size_t len=3;
-		size_t depths[]={2,2,1};
+		size_t len=4;
+		size_t depths[]={4,4,2,1};
 		NN = createNN( len, depths);
 		if (NN==NULL||NN->failFlag){
 			ERROR("NN is NULL!\n");
