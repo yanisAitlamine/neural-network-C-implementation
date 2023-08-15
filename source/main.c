@@ -58,7 +58,7 @@ int main()
 		size_t len=4;
 		size_t depths[]={4,4,2,1};
 		NN = createNN( len, depths);
-		if (NN==NULL||NN->failFlag){
+		if (NN==NULL||FF(NN)){
 			ERROR("NN is NULL!\n");
 			freeNN(NN);
 		return 1;
@@ -69,7 +69,7 @@ int main()
 		freeNN(NN);
 	}
 	NN = readNN(file);
-	if (NN==NULL||NN->failFlag){
+	if (NN==NULL||FF(NN)){
 		ERROR("NN 2 is NULL!\n");
 		freeNN(NN);
 		return 1;
@@ -86,14 +86,14 @@ int main()
 		compute (input[i], NN,!DEBUG);
 		printf ("output: [");
 		fflush(stdout);
-		for (int y=0;y<NN->depths[NN->len-1];y++){
-			printf("%f",NN->activations[NN->len-1][y][AN]);
-			if (y<NN->depths[NN->len-1]-1){
+		for (int y=0;y<DPTH(NN)[LEN(NN)-1];y++){
+			printf("%f",ACT(NN)[LEN(NN)-1][y][AN]);
+			if (y<DPTH(NN)[LEN(NN)-1]-1){
 				printf (", ");
 			}
 		}
 		printf ("]\ncosts: [");
-		printf("%f",multnode_cost(expected[i],NN->activations[NN->len-1],NN->depths[NN->len-1],MSE));
+		printf("%f",multnode_cost(expected[i],ACT(NN)[LEN(NN)-1],DPTH(NN)[NN->len-1],MSE));
 		printf ("]\n");
 	}
 	printNN(NN);

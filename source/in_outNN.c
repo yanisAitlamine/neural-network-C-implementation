@@ -50,23 +50,23 @@ void free_data_mtrx(double*** data, int nb_sample){
 
 //write a NN to a file
 bool writeNN(char* filename, nNetwork* NN){
-    printf ("Saving neural net of size %ld!\n",NN->len);
+    printf ("Saving neural net of size %ld!\n",LEN(NN));
     FILE* file=NULL;
     file = fopen(filename, "wb+");
     if (file==NULL){ return false;}
-    if (fwrite (&(NN->len), sizeof(size_t), 1, file)!= 1){ 
+    if (fwrite (&(LEN(NN)), sizeof(size_t), 1, file)!= 1){ 
 	return false;
     }
     printf ("=");
-    if (fwrite (NN->depths, sizeof(size_t), NN->len, file)!=NN->len){
+    if (fwrite (DPTH(NN), sizeof(size_t), LEN(NN), file)!=NN->len){
 	return false;
     }
     printf ("=");
-    for (int i=0; i<NN->len-1; i++){
-	if (!writeMtrx(file, NN->weights[i], NN->depths[i], NN->depths[i+1])){ 
+    for (int i=0; i<LEN(NN)-1; i++){
+	if (!writeMtrx(file, W(NN)[i], DPTH(NN)[i], NN->depths[i+1])){ 
 	    return false;
 	}
-	if (fwrite (NN->bias[i], sizeof(double*), NN->depths[i+1], file)!= NN->depths[i+1]){
+	if (fwrite (B(NN)[i], sizeof(double*), DPTH(NN)[i+1], file)!= NN->depths[i+1]){
     	    return false;
 	}
     }
@@ -94,12 +94,12 @@ nNetwork* readNN(char* filename){
     printf ("=");
     nNetwork* NN=createNN(len,depths);
     free(depths);
-    for (int i=0; i<NN->len-1; i++){
-	if (!readMtrx (file, NN->weights[i], NN->depths[i], NN->depths[i+1])){ 	    
+    for (int i=0; i<LEN(NN)-1; i++){
+	if (!readMtrx (file, W(NN)[i], DPTH(NN)[i], NN->depths[i+1])){ 	    
 	    freeNN(NN);
 	    return NULL;
 	}
-	if (fread (NN->bias[i], sizeof(double*), NN->depths[i+1], file)!= NN->depths[i+1]){ 	    
+	if (fread (B(NN)[i], sizeof(double*), DPTH(NN)[i+1], file)!= NN->depths[i+1]){ 	    
 	    freeNN(NN);
 	    return NULL;
 	}
