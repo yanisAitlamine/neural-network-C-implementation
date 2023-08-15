@@ -8,11 +8,11 @@
 #include "errors.h"
 #include "in_outNN.h"
 #include "compute.h"
-#define NB_IN 16 
-#define DP_IN 4
+#define NB_IN 4 
+#define DP_IN 2
 #define DP_OUT 1
 #define LR 0.10000
-#define EPOCHS 10000
+#define EPOCHS 100000
 #define DEBUG false
 
 int main()
@@ -42,7 +42,9 @@ int main()
 			} else {train_data[i][0][y]=train_data[i-1][0][y];}
 
 		}
-		if (((int)train_data[i][0][0]^(int)train_data[i][0][1])&&((int)train_data[i][0][2]^(int)train_data[i][0][3])){
+		if (((int)train_data[i][0][0]^(int)train_data[i][0][1])
+		//&&((int)train_data[i][0][2]^(int)train_data[i][0][3])
+		){
 			train_data[i][1][0]=1;
 		}else{
 			train_data[i][1][0]=0;
@@ -51,8 +53,8 @@ int main()
 	char* file="NNtest.nn";
 	nNetwork* NN=NULL;
 	if (fopen(file,"r")==NULL){
-		size_t len=4;
-		size_t depths[]={4,4,2,1};
+		size_t len=3;
+		size_t depths[]={2,2,1};
 		NN = createNN( len, depths);
 		if (NN==NULL||NN->failFlag){
 			ERROR("NN is NULL!\n");
@@ -81,12 +83,7 @@ int main()
 		free(train_data[i]);
 	}
 	free(train_data);
-	for (int i=0;i<NB_IN;i++){
-		printf ("\nInput %d: ",i);
-		for (int y=0;y<DP_IN;y++) printf("%.1f\t",input[i][y]);
-		printf ("\nExpected %d: ",i);
-		for (int y=0;y<DP_OUT;y++) printf("%.1f\t",expected[i][y]);
-	}
+
 	double** output=(double**)malloc(NB_IN*sizeof(double*));
 	*output=(double*)malloc(DP_OUT*sizeof(double));
 	for (int i=0;i<NB_IN;i++){
