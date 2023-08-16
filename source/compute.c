@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include "compute.h"
-
+#define change
 double sigmoid(double n){
     return (1/(1+pow(EULER_NUMBER, -n)));
 }
