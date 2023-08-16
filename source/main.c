@@ -9,51 +9,37 @@
 #include "in_outNN.h"
 #include "compute.h"
 #define NB_IN 4 
-#define DP_IN 2
-#define DP_OUT 1
+#define DP_IN 784
+#define DP_OUT 10
 #define LR 0.10000
 #define EPOCHS 100000
-#define DEBUG false
+#define DEBUG true
+#define TRAIN true
+#define TEST false
 
 int main()
 {
 	srand(time(0));
 	double*** train_data=init_data_matrix(NB_IN,DP_IN,DP_OUT);	
 	if (train_data==NULL){
-		ERROR("train_data is null");
+		ERROR("train_data is null!\n");
 		return 1;
 	}
-	//init the data for the specific problem of xor gate
-	for (int i=0;i<DP_IN;i++){
-		train_data[0][0][i]=0;
+	if (readMnistIMG(train_data,DEBUG,NB_IN,TRAIN)){
+		ERROR("read failed!\n");
+		free_data_mtrx(train_data,NB_IN);
+		return 1;
 	}
-	train_data[0][1][0]=0;
-	for (int i=1;i<NB_IN;i++){
-		int rest=1;
-		for (int y=0;y<DP_IN;y++){
-			if (rest){
-				if (train_data[i-1][0][y]){
-					rest=1;
-					train_data[i][0][y]=0;
-				}else{
-					train_data[i][0][y]=1;
-					rest=0;
-				}
-			} else {train_data[i][0][y]=train_data[i-1][0][y];}
-
-		}
-		if (((int)train_data[i][0][0]^(int)train_data[i][0][1])
-		){
-			train_data[i][1][0]=1;
-		}else{
-			train_data[i][1][0]=0;
-		}
+	if (readMnistLabels(train_data,DEBUG,NB_IN,TRAIN)){
+		ERROR("read failed!\n");
+		free_data_mtrx(train_data,NB_IN);
+		return 1;
 	}
 	char* file="NNtest.nn";
 	nNetwork* NN=NULL;
 	if (fopen(file,"r")==NULL){
-		size_t len=3;
-		size_t depths[]={2,2,1};
+		size_t len=4;
+		size_t depths[]={DP_IN,28,16,DP_OUT};
 		NN = createNN( len, depths);
 		if (NN==NULL||NN->failFlag){
 			ERROR("NN is NULL!\n");
@@ -71,12 +57,13 @@ int main()
 		freeNN(NN);
 		return 1;
 	}
-	printNN(NN);
+	//printNN(NN);
 	double** input=(double**)malloc(NB_IN*sizeof(double*));
 	double** expected=(double**)malloc(NB_IN*sizeof(double*));
 	splitData(NB_IN,DP_IN,DP_OUT,train_data,&input,&expected);
 	printf ("data splitted\n");
 	free_data_mtrx(train_data,NB_IN);
+	/*
 	train(expected, input, NN, NB_IN, LR, MSE,EPOCHS,DEBUG);
 
 	for (int i=0;i<NB_IN;i++){
@@ -92,7 +79,7 @@ int main()
 		printf ("]\ncosts: [");
 		printf("%f",multnode_cost(expected[i],NN->activations[NN->len-1],NN->depths[NN->len-1],MSE));
 		printf ("]\n");
-	}
+	}*/
 	printNN(NN);
 	free_mtrx(input, NB_IN);
 	free_mtrx(expected, NB_IN);

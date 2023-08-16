@@ -126,17 +126,25 @@ void printNN(nNetwork* NN){
 	printf("Layer %d->%d\tlen: %ld\tdepth: %ld\n",i+1,i+2,NN->depths[i],NN->depths[i+1]);
 	printf ("===================================================================\n");
     	for (int x=0;x<NN->depths[i];x++){
-	    printf("[");
-	    for (int y=0; y<NN->depths[i+1];y++){
-		printf("%.1f",NN->weights[i][x][y]);
-		if (y<NN->depths[i+1]-1) printf(", ");
+	    if (x<5||x>NN->depths[i]-5){
+		printf("[");
+		for (int y=0; y<NN->depths[i+1];y++){
+		    if (y<1||y>NN->depths[i+1]-2){
+			printf("%.1f",NN->weights[i][x][y]);
+		    }
+		    if (y==1)printf(",...,");
+		}
+		printf("]");
 	    }
-	    printf("]");
+	    if (x==5)printf(",...,");
 	}    	
 	printf("\n[");
     	for (int x=0;x<NN->depths[i+1];x++){
-	    printf("%.1f",NN->bias[i][x]);
-	    if (x<NN->depths[i+1]-1) printf(", ");
+	    if(x<2||x>NN->depths[i+1]-2){
+		printf("%.1f",NN->bias[i][x]);
+		if (x<NN->depths[i+1]-1) printf(", ");
+	    }
+	    if (x==2)printf("...,");
 	}
 	printf("]\n");
     } 
