@@ -8,12 +8,12 @@
 #include "errors.h"
 #include "in_outNN.h"
 #include "compute.h"
-#define NB_IN 4 
+#define NB_IN 100 
 #define DP_IN 784
 #define DP_OUT 10
 #define LR 0.10000
-#define EPOCHS 100000
-#define DEBUG true
+#define EPOCHS 100
+#define DEBUG false
 #define TRAIN true
 #define TEST false
 
@@ -63,11 +63,11 @@ int main()
 	splitData(NB_IN,DP_IN,DP_OUT,train_data,&input,&expected);
 	printf ("data splitted\n");
 	free_data_mtrx(train_data,NB_IN);
-	/*
+	
 	train(expected, input, NN, NB_IN, LR, MSE,EPOCHS,DEBUG);
 
 	for (int i=0;i<NB_IN;i++){
-		compute (input[i], NN,!DEBUG);
+		compute (input[i], NN,DEBUG);
 		printf ("output: [");
 		fflush(stdout);
 		for (int y=0;y<NN->depths[NN->len-1];y++){
@@ -79,7 +79,7 @@ int main()
 		printf ("]\ncosts: [");
 		printf("%f",multnode_cost(expected[i],NN->activations[NN->len-1],NN->depths[NN->len-1],MSE));
 		printf ("]\n");
-	}*/
+	}
 	printNN(NN);
 	free_mtrx(input, NB_IN);
 	free_mtrx(expected, NB_IN);

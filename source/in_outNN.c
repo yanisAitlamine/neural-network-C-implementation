@@ -33,7 +33,7 @@ bool readMnistLabels(double ***data, bool debug,int len_data,bool mode){
 		fclose(file);
 		return true;
 	    }
-	printf ("%d\t",bytes[0]);
+	if (debug)printf ("%d\t",bytes[0]);
 	for (int y=0;y<SIZE_OUT;y++){
 	    if (y==bytes[0]){data[i][1][y]=1;}else{data[i][1][y]=0;}
 	    if (debug){
@@ -42,7 +42,7 @@ bool readMnistLabels(double ***data, bool debug,int len_data,bool mode){
 	}
     }
 
-    printf ("\nFile read with success!\n");
+    printf ("\nLabel ile read with success!\n");
     fclose(file);
     return false;
 }
@@ -79,7 +79,7 @@ bool readMnistIMG(double ***data, bool debug,int len_data,bool mode){
 	}
     }
 
-    printf ("\nFile read with success!\n");
+    printf ("\nIMG file read with success!\n");
     fclose(file);
     return false;
 }
