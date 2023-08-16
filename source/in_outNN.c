@@ -42,7 +42,7 @@ bool readMnistLabels(double ***data, bool debug,int len_data,bool mode){
 	}
     }
 
-    printf ("\nLabel ile read with success!\n");
+    printf ("Label file read with success!\n");
     fclose(file);
     return false;
 }

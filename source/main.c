@@ -8,11 +8,12 @@
 #include "errors.h"
 #include "in_outNN.h"
 #include "compute.h"
-#define NB_IN 100 
+#define SIZE_DATA 60000 
 #define DP_IN 784
 #define DP_OUT 10
-#define LR 0.10000
-#define EPOCHS 100
+#define LR 0.20000
+#define EPOCHS 10
+#define BATCH_SIZE 50
 #define DEBUG false
 #define TRAIN true
 #define TEST false
@@ -20,26 +21,26 @@
 int main()
 {
 	srand(time(0));
-	double*** train_data=init_data_matrix(NB_IN,DP_IN,DP_OUT);	
+	double*** train_data=init_data_matrix(SIZE_DATA,DP_IN,DP_OUT);	
 	if (train_data==NULL){
 		ERROR("train_data is null!\n");
 		return 1;
 	}
-	if (readMnistIMG(train_data,DEBUG,NB_IN,TRAIN)){
+	if (readMnistIMG(train_data,false,SIZE_DATA,TRAIN)){
 		ERROR("read failed!\n");
-		free_data_mtrx(train_data,NB_IN);
+		free_data_mtrx(train_data,SIZE_DATA);
 		return 1;
 	}
-	if (readMnistLabels(train_data,DEBUG,NB_IN,TRAIN)){
+	if (readMnistLabels(train_data,false,SIZE_DATA,TRAIN)){
 		ERROR("read failed!\n");
-		free_data_mtrx(train_data,NB_IN);
+		free_data_mtrx(train_data,SIZE_DATA);
 		return 1;
 	}
 	char* file="NNtest.nn";
 	nNetwork* NN=NULL;
 	if (fopen(file,"r")==NULL){
 		size_t len=4;
-		size_t depths[]={DP_IN,28,16,DP_OUT};
+		size_t depths[]={DP_IN,512,512,DP_OUT};
 		NN = createNN( len, depths);
 		if (NN==NULL||NN->failFlag){
 			ERROR("NN is NULL!\n");
@@ -58,31 +59,23 @@ int main()
 		return 1;
 	}
 	//printNN(NN);
-	double** input=(double**)malloc(NB_IN*sizeof(double*));
-	double** expected=(double**)malloc(NB_IN*sizeof(double*));
-	splitData(NB_IN,DP_IN,DP_OUT,train_data,&input,&expected);
+	double** input=(double**)malloc(SIZE_DATA*sizeof(double*));
+	double** expected=(double**)malloc(SIZE_DATA*sizeof(double*));
+	splitData(SIZE_DATA,DP_IN,DP_OUT,train_data,&input,&expected);
 	printf ("data splitted\n");
-	free_data_mtrx(train_data,NB_IN);
+	free_data_mtrx(train_data,SIZE_DATA);
 	
-	train(expected, input, NN, NB_IN, LR, MSE,EPOCHS,DEBUG);
+	train(expected, input, NN, SIZE_DATA, BATCH_SIZE, LR, MSE,EPOCHS,DEBUG);
 
-	for (int i=0;i<NB_IN;i++){
-		compute (input[i], NN,DEBUG);
-		printf ("output: [");
-		fflush(stdout);
-		for (int y=0;y<NN->depths[NN->len-1];y++){
-			printf("%f",NN->activations[NN->len-1][y][AN]);
-			if (y<NN->depths[NN->len-1]-1){
-				printf (", ");
-			}
-		}
-		printf ("]\ncosts: [");
+	for (int i=0;i<10;i++){
+		compute (input[i], NN,!DEBUG);
+		printf("costs: [");
 		printf("%f",multnode_cost(expected[i],NN->activations[NN->len-1],NN->depths[NN->len-1],MSE));
 		printf ("]\n");
 	}
 	printNN(NN);
-	free_mtrx(input, NB_IN);
-	free_mtrx(expected, NB_IN);
+	free_mtrx(input, SIZE_DATA);
+	free_mtrx(expected, SIZE_DATA);
 	if (!writeNN (file, NN)){ERROR("failed to write");}
 	freeNN(NN);
 	return 0;
