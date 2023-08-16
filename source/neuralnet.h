@@ -10,15 +10,6 @@
 //prime of smoothing func on zn
 #define ZNPRIME	3
 
-#define FF(nn) (nn->failFlag)
-#define LEN(nn) (nn->len)
-#define DPTH(nn) (nn->depths)
-#define W(nn) (nn->weights)
-#define B(nn) (nn->bias)
-#define WGRD(nn) (nn->weightsGrd)
-#define BGRD(nn) (nn->biasGrd)
-#define ACT(nn) (nn->activations)
-
 typedef struct nNetwork nNetwork;
 struct nNetwork{
 	bool failFlag;

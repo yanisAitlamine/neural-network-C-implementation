@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include "compute.h"
-#define change
+
 double sigmoid(double n){
     return (1/(1+pow(EULER_NUMBER, -n)));
 }
@@ -14,9 +14,9 @@ double sigmoidprime(double n){
 void compute(double *input, nNetwork *NN,bool debug){
     size_t maxsize=0;
     if (debug){printf ("Computing with inputs: [");
-        for ( int i=0;i<DPTH(NN)[0];i++){
+        for ( int i=0;i<NN->depths[0];i++){
             printf ("%.1f",input[i]);
-            if (i<DPTH(NN)[0]-1){
+            if (i<NN->depths[0]-1){
                 printf (", ");
             } else {
                 printf ("]");
@@ -24,21 +24,21 @@ void compute(double *input, nNetwork *NN,bool debug){
         }
     }
     if (debug)printf ("=");
-    for (int i=0;i<DPTH(NN)[0];i++){ACT(NN)[0][i][0]=input[i];}
-    for (int i=0;i<LEN(NN)-1;i++){
-        for (int y=0;y<DPTH(NN)[i+1];y++){
-            ACT(NN)[i+1][y][ZN]=B(NN)[i][y];
-            for (int x=0;x<DPTH(NN)[i];x++){
-                ACT(NN)[i+1][y][ZN]+=(NN->activations[i][x][0]*W(NN)[i][x][y]); 
+    for (int i=0;i<NN->depths[0];i++){NN->activations[0][i][0]=input[i];}
+    for (int i=0;i<NN->len-1;i++){
+        for (int y=0;y<NN->depths[i+1];y++){
+            NN->activations[i+1][y][ZN]=NN->bias[i][y];
+            for (int x=0;x<NN->depths[i];x++){
+                NN->activations[i+1][y][ZN]+=(NN->activations[i][x][0]*NN->weights[i][x][y]); 
             }
-            ACT(NN)[i+1][y][AN]=sigmoid(NN->activations[i+1][y][ZN]);
+            NN->activations[i+1][y][AN]=sigmoid(NN->activations[i+1][y][ZN]);
         } 
     }
     if (debug){
-            for (int x=0;x<LEN(NN);x++){
+            for (int x=0;x<NN->len;x++){
                 printf ("\nlayer %d: ",x);
-                for (int y=0;y<DPTH(NN)[x];y++){
-                    printf("%.1f\t",ACT(NN)[x][y][AN]);
+                for (int y=0;y<NN->depths[x];y++){
+                    printf("%.1f\t",NN->activations[x][y][AN]);
                 }
                 printf ("|");
             }
@@ -146,34 +146,34 @@ double multnode_cost(double *expected, double **output, int len, int function){
 
 void compute_grd(double *expected, nNetwork *NN, int function, bool debug){
     if (debug)printf ("Computing Gradient!\n");
-    for (int i=LEN(NN)-2;i>-1;i--){
+    for (int i=NN->len-2;i>-1;i--){
         if (debug)printf ("layer %d\t",i+1);
-        for (int x=0;x<DPTH(NN)[i+1];x++){
-            ACT(NN)[i+1][x][DERIV]=0;
-            ACT(NN)[i+1][x][ZNPRIME]=sigmoidprime(NN->activations[i+1][x][AN]);
-            if (i==LEN(NN)-2){ 
+        for (int x=0;x<NN->depths[i+1];x++){
+            NN->activations[i+1][x][DERIV]=0;
+            NN->activations[i+1][x][ZNPRIME]=sigmoidprime(NN->activations[i+1][x][AN]);
+            if (i==NN->len-2){ 
                 switch (function){
                     case MULTICLASS:
                     case BINARY:
-                        ACT(NN)[i+1][x][DERIV]=NN->activations[i+1][x][ZNPRIME]*binary_prime(expected[x],NN->activations[i+1][x][AN]);
+                        NN->activations[i+1][x][DERIV]=NN->activations[i+1][x][ZNPRIME]*binary_prime(expected[x],NN->activations[i+1][x][AN]);
                     break;
                     case MSE:
                     case MAE:
                     case REGRESSION:
                     case SQR_REG:
-                        ACT(NN)[i+1][x][DERIV]=-(NN->activations[i+1][x][ZNPRIME]*sqr_prime(expected[x],NN->activations[i+1][x][AN]));
+                        NN->activations[i+1][x][DERIV]=-(NN->activations[i+1][x][ZNPRIME]*sqr_prime(expected[x],NN->activations[i+1][x][AN]));
                     break;
                 }
             }else{
-                ACT(NN)[i+1][x][DERIV]=sum_W_Zn_Deriv(i+1,x,NN)*NN->activations[i+1][x][ZNPRIME];
+                NN->activations[i+1][x][DERIV]=sum_W_Zn_Deriv(i+1,x,NN)*NN->activations[i+1][x][ZNPRIME];
             }
-            if (debug)printf ("Error%d: %f, ZnPRIME:%f\t",x,ACT(NN)[i+1][x][DERIV],NN->activations[i+1][x][ZNPRIME]);
-            BGRD(NN)[i][x]+=ACT(NN)[i+1][x][DERIV];
+            if (debug)printf ("Error%d: %f, ZnPRIME:%f\t",x,NN->activations[i+1][x][DERIV],NN->activations[i+1][x][ZNPRIME]);
+            NN->biasGrd[i][x]+=NN->activations[i+1][x][DERIV];
         }
         if (debug)printf ("\n");
-        for (int x=0;x<DPTH(NN)[i];x++){
-            for (int y=0;y<DPTH(NN)[i+1];y++){
-                WGRD(NN)[i][x][y]+=ACT(NN)[i][x][AN]*NN->activations[i+1][y][DERIV];               
+        for (int x=0;x<NN->depths[i];x++){
+            for (int y=0;y<NN->depths[i+1];y++){
+                NN->weightsGrd[i][x][y]+=NN->activations[i][x][AN]*NN->activations[i+1][y][DERIV];               
             }
         }
         if (debug)printf ("\n");
@@ -183,8 +183,8 @@ void compute_grd(double *expected, nNetwork *NN, int function, bool debug){
 
 double sum_W_Zn_Deriv(int rank, int ndnum, nNetwork* NN){
     double result = 0;
-    for (int i=0;i<DPTH(NN)[rank+1];i++){
-                 result+=W(NN)[rank][ndnum][i]*ACT(NN)[rank+1][i][DERIV];   
+    for (int i=0;i<NN->depths[rank+1];i++){
+                 result+=NN->weights[rank][ndnum][i]*NN->activations[rank+1][i][DERIV];   
     }
     return result;
 }
