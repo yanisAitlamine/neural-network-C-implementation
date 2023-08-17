@@ -8,42 +8,73 @@ double sigmoid(double n){
 }
 
 double sigmoidprime(double n){
+    if (n==1)return 0.0001;
+    if (n==0)return -0.0001;
     return (n)*(1-(n));
+}
+
+double Relu(double n){
+    if(n<0)return 0;
+    return n;
+}
+
+double ReluDeriv(double n){
+    if (n)return 1;
+    return 0;
+}
+
+// Softmax activation function
+void softmax(const double *input, double *output, int size) {
+    double max_val = input[0];
+    for (int i = 1; i < size; i++) {
+        if (input[i] > max_val) {
+            max_val = input[i];
+        }
+    }
+
+    double sum_exp = 0.0;
+    for (int i = 0; i < size; i++) {
+        output[i] = exp(input[i] - max_val);
+        sum_exp += output[i];
+    }
+
+    for (int i = 0; i < size; i++) {
+        output[i] /= sum_exp;
+    }
+}
+
+// Derivative of softmax
+void softmax_derivative(const double *softmax_output, double *derivative, int size) {
+    for (int i = 0; i < size; i++) {
+        derivative[i] = softmax_output[i] * (1.0 - softmax_output[i]);
+    }
 }
 
 void compute(double *input, nNetwork *NN,bool debug){
     size_t maxsize=0;
-    if (debug){printf ("Computing with inputs: [");
-        for ( int i=0;i<DPTH(NN)[0];i++){
-            printf ("%.1f",input[i]);
-            if (i<DPTH(NN)[0]-1){
-                printf (", ");
-            } else {
-                printf ("]");
-            }
-        }
+    int i,y,x;
+    if (debug){
+        printf ("Computing\noutput[");
     }
-    if (debug)printf ("=");
-    for (int i=0;i<DPTH(NN)[0];i++){ACT(NN)[0][i][0]=input[i];}
-    for (int i=0;i<LEN(NN)-1;i++){
-        for (int y=0;y<DPTH(NN)[i+1];y++){
+    for (i=0;i<DPTH(NN)[0];i++){ACT(NN)[0][i][0]=input[i];}
+    for (i=0;i<LEN(NN)-1;i++){
+        for (y=0;y<DPTH(NN)[i+1];y++){
             ACT(NN)[i+1][y][ZN]=B(NN)[i][y];
-            for (int x=0;x<DPTH(NN)[i];x++){
+            for (x=0;x<DPTH(NN)[i];x++){
                 ACT(NN)[i+1][y][ZN]+=(NN->activations[i][x][0]*W(NN)[i][x][y]); 
             }
             ACT(NN)[i+1][y][AN]=sigmoid(NN->activations[i+1][y][ZN]);
         } 
     }
     if (debug){
-            for (int x=0;x<LEN(NN);x++){
-                printf ("\nlayer %d: ",x);
-                for (int y=0;y<DPTH(NN)[x];y++){
-                    printf("%.1f\t",ACT(NN)[x][y][AN]);
-                }
-                printf ("|");
-            }
+        for (int y=0;y<NN->depths[NN->len-1];y++){
+	    printf("%.1f",NN->activations[NN->len-1][y][AN]);
+	    if (y<NN->depths[NN->len-1]-1){
+	        printf (", ");
+	    }
         }
-    if (debug)printf (">Finished\n");
+    }
+    if (debug)printf ("]=>Finished\n");
 }
 
 //split data set if entries and expected are a simple list of activations
@@ -75,7 +106,7 @@ double regression_cost(double expected, double output){
 }
 
 double sqr_regression(double expected, double output){
-    return pow(expected-output,2)/2;
+    return pow(expected-output,2);
 }
 
 // case expected = 0 output=1 handled, would divide by 0
@@ -86,7 +117,7 @@ double binary_prime(double expected, double output){
 }
 
 double sqr_prime(double expected, double output){
-    return -(expected-output);
+    return -2*(expected-output);
 }
 
 // compute binary cost
@@ -145,34 +176,46 @@ double multnode_cost(double *expected, double **output, int len, int function){
 }
 
 void compute_grd(double *expected, nNetwork *NN, int function, bool debug){
-    if (debug)printf ("Computing Gradient!\n");
-    for (int i=LEN(NN)-2;i>-1;i--){
-        if (debug)printf ("layer %d\t",i+1);
-        for (int x=0;x<DPTH(NN)[i+1];x++){
-            ACT(NN)[i+1][x][DERIV]=0;
-            ACT(NN)[i+1][x][ZNPRIME]=sigmoidprime(NN->activations[i+1][x][AN]);
-            if (i==LEN(NN)-2){ 
-                switch (function){
-                    case MULTICLASS:
-                    case BINARY:
-                        ACT(NN)[i+1][x][DERIV]=NN->activations[i+1][x][ZNPRIME]*binary_prime(expected[x],NN->activations[i+1][x][AN]);
-                    break;
-                    case MSE:
-                    case MAE:
-                    case REGRESSION:
-                    case SQR_REG:
-                        ACT(NN)[i+1][x][DERIV]=-(NN->activations[i+1][x][ZNPRIME]*sqr_prime(expected[x],NN->activations[i+1][x][AN]));
-                    break;
-                }
-            }else{
-                ACT(NN)[i+1][x][DERIV]=sum_W_Zn_Deriv(i+1,x,NN)*NN->activations[i+1][x][ZNPRIME];
-            }
-            if (debug)printf ("Error%d: %f, ZnPRIME:%f\t",x,ACT(NN)[i+1][x][DERIV],NN->activations[i+1][x][ZNPRIME]);
-            BGRD(NN)[i][x]+=ACT(NN)[i+1][x][DERIV];
+    int i,x,y;
+    if (debug){
+        printf ("Computing Gradient!\nExpected[");
+        for (int y=0;y<NN->depths[NN->len-1];y++){
+	    printf("%.1f",expected[y]);
+	    if (y<NN->depths[NN->len-1]-1){
+	        printf (", ");
+	    }
+        }
+        printf("]\n");
+    }
+    for (i=0;i<DPTH(NN)[LEN(NN)-1];i++){
+        ACT(NN)[LEN(NN)-1][i][ZNPRIME]=sigmoidprime(NN->activations[LEN(NN)-1][i][AN]);
+        switch (function){
+            case MULTICLASS:
+            case BINARY:
+                ACT(NN)[LEN(NN)-1][i][DERIV]=NN->activations[LEN(NN)-1][i][ZNPRIME]*binary_prime(expected[i],NN->activations[LEN(NN)-1][i][AN]);
+            break;
+            case MSE:
+            case MAE:
+            case REGRESSION:
+            case SQR_REG:
+                ACT(NN)[LEN(NN)-1][i][DERIV]=-(NN->activations[LEN(NN)-1][i][ZNPRIME]*sqr_prime(expected[i],NN->activations[LEN(NN)-1][i][AN]));
+            break;
+        }
+        BGRD(NN)[LEN(NN)-2][i]+=ACT(NN)[LEN(NN)-1][i][DERIV];
+        if (debug)printf ("Error%d: %f, ZnPRIME:%f\t",i,ACT(NN)[LEN(NN)-1][i][DERIV],NN->activations[LEN(NN)-1][i][ZNPRIME]);
+        fflush(stdout);
+    }
+    for (i=LEN(NN)-2;i>-1;i--){
+        if (debug)printf ("layer %d\t",i);
+        for (x=0;x<DPTH(NN)[i];x++){
+            ACT(NN)[i][x][ZNPRIME]=sigmoidprime(NN->activations[i][x][AN]);
+            ACT(NN)[i][x][DERIV]=sum_W_Zn_Deriv(i,x,NN)*NN->activations[i][x][ZNPRIME];
+            if (debug&&x<10)printf ("Error%d: %f, ZnPRIME:%f\t",x,ACT(NN)[i][x][DERIV],NN->activations[i][x][ZNPRIME]);
+            if (i>0)BGRD(NN)[i-1][x]+=ACT(NN)[i][x][DERIV];
         }
         if (debug)printf ("\n");
-        for (int x=0;x<DPTH(NN)[i];x++){
-            for (int y=0;y<DPTH(NN)[i+1];y++){
+        for (x=0;x<DPTH(NN)[i];x++){
+            for (y=0;y<DPTH(NN)[i+1];y++){
                 WGRD(NN)[i][x][y]+=ACT(NN)[i][x][AN]*NN->activations[i+1][y][DERIV];               
             }
         }
@@ -189,11 +232,16 @@ double sum_W_Zn_Deriv(int rank, int ndnum, nNetwork* NN){
     return result;
 }
 
-void batch(double **expected, double **input, nNetwork* NN, int size_batch, double learning_rate, int function, bool debug){
+void batch(double **expected, double **input,int rank, nNetwork* NN, int size_batch, double learning_rate, int function, bool debug){
 	multiply_grd(NN, 0);
 	for  (int i=0;i<size_batch;i++){
-		compute (input[i], NN,debug);
-		compute_grd(expected[i],NN,function,debug);
+	    if (debug && i<5){
+                compute (input[i+rank], NN,debug);
+                compute_grd(expected[i+rank],NN,function,debug);
+            }else{
+                compute (input[i+rank], NN,false);
+                compute_grd(expected[i+rank],NN,function,false);
+            }
 	}
 	multiply_grd(NN, pow(size_batch,-1));
         if (debug) printNNGrd(NN);
@@ -201,16 +249,17 @@ void batch(double **expected, double **input, nNetwork* NN, int size_batch, doub
 	if (debug)printNN(NN);
 }
 
-void train(double **expected, double **input, nNetwork* NN, int size_batch, double learning_rate, int function, int epochs, bool debug){
+void train(double **expected, double **input, nNetwork* NN, int size_data, int size_batch, double learning_rate, int function, int epochs, bool debug){
    printf ("training for %d epochs over batch of size %d\n",epochs, size_batch);
     for (int i=0;i<=epochs;i++){
-        batch(expected,input,NN,size_batch,learning_rate,function,false);
-        for (int y=0;y<=10;y++) {
-            if (y*(epochs/10)==i) {
-                printf("=");
-                if (debug){
-                    printf("epochs nb %d\n",i);
-                    batch(expected,input,NN,size_batch,learning_rate,function,true);
+        for (int x=0;x<size_data;x+=size_batch){
+            if (x>size_data-size_batch){size_batch=size_data-x;}
+            batch(expected,input,x,NN,size_batch,learning_rate,function,debug);
+            for (int y=0;y<=10;y++) {
+                if (y*(epochs/10)==i&&x==0) {
+                    printf("=|");
+                    fflush(stdout);
+                    
                 }
             }
         }
