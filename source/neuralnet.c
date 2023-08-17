@@ -93,11 +93,11 @@ void fillNN(nNetwork* NN){
     for (int i=0;i<LEN(NN)-1;i++){
         for (int x=0;x<DPTH(NN)[i];x++){
 	    for (int y=0; y<DPTH(NN)[i+1];y++){	
-		W(NN)[i][x][y]=rand_double();
+		W(NN)[i][x][y]=rand_double()*0.01;
 	    }
 	}
 	for (int y=0;y<DPTH(NN)[i+1];y++){
-	    B(NN)[i][y]=rand_double();
+	    B(NN)[i][y]=rand_double()*0.01;
 	}
     }
     printf ("Filling done!\n");

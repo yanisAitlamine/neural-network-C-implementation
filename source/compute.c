@@ -8,6 +8,8 @@ double sigmoid(double n){
 }
 
 double sigmoidprime(double n){
+    if (n==1)return 0.0001;
+    if (n==0)return -0.0001;
     return (n)*(1-(n));
 }
 
@@ -208,7 +210,7 @@ void compute_grd(double *expected, nNetwork *NN, int function, bool debug){
         for (x=0;x<DPTH(NN)[i];x++){
             ACT(NN)[i][x][ZNPRIME]=sigmoidprime(NN->activations[i][x][AN]);
             ACT(NN)[i][x][DERIV]=sum_W_Zn_Deriv(i,x,NN)*NN->activations[i][x][ZNPRIME];
-            if (debug&&DPTH(NN)[i]<16)printf ("Error%d: %f, ZnPRIME:%f\t",x,ACT(NN)[i][x][DERIV],NN->activations[i][x][ZNPRIME]);
+            if (debug&&x<10)printf ("Error%d: %f, ZnPRIME:%f\t",x,ACT(NN)[i][x][DERIV],NN->activations[i][x][ZNPRIME]);
             if (i>0)BGRD(NN)[i-1][x]+=ACT(NN)[i][x][DERIV];
         }
         if (debug)printf ("\n");

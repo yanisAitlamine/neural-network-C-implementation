@@ -8,10 +8,10 @@
 #include "errors.h"
 #include "in_outNN.h"
 #include "compute.h"
-#define SIZE_DATA 60000 
+#define SIZE_DATA 3000 
 #define DP_IN 784
 #define DP_OUT 10
-#define LR 0.20000
+#define LR 000001
 #define EPOCHS 10
 #define BATCH_SIZE 50
 #define DEBUG false
@@ -40,7 +40,7 @@ int main()
 	nNetwork* NN=NULL;
 	if (fopen(file,"r")==NULL){
 		size_t len=4;
-		size_t depths[]={DP_IN,512,512,DP_OUT};
+		size_t depths[]={DP_IN,128,64,DP_OUT};
 		NN = createNN( len, depths);
 		if (NN==NULL||NN->failFlag){
 			ERROR("NN is NULL!\n");
