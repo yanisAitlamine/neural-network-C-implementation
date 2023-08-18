@@ -8,97 +8,109 @@
 #include "errors.h"
 #include "in_outNN.h"
 #include "compute.h"
-#define NB_IN 28 
-#define DP_IN 4
-#define DP_OUT 1
-#define LR 0.10000
-#define EPOCHS 100000
-#define DEBUG false
+#define SIZE_DATA 3 
+#define DP_IN 784
+#define DP_OUT 10
+#define LR 0.01
+#define EPOCHS 2
+#define BATCH_SIZE 3
+#define TRAIN true
+#define TEST false
+#define SIZE_TEST 10
 
 int main()
 {
 	srand(time(0));
-	double*** train_data=init_data_matrix(NB_IN,DP_IN,DP_OUT);	
+	double*** train_data=init_data_matrix(SIZE_DATA,DP_IN,DP_OUT);	
 	if (train_data==NULL){
-		ERROR("train_data is null");
+		ERROR("train_data is null!\n");
 		return 1;
 	}
-	//init the data for the specific problem of xor gate
-	for (int i=0;i<DP_IN;i++){
-		train_data[0][0][i]=0;
+	if (readMnistIMG(train_data,SIZE_DATA,TRAIN)){
+		ERROR("read train img failed!\n");
+		free_data_mtrx(train_data,SIZE_DATA);
+		return 1;
 	}
-	train_data[0][1][0]=0;
-	for (int i=1;i<NB_IN;i++){
-		int rest=1;
-		for (int y=0;y<DP_IN;y++){
-			if (rest){
-				if (train_data[i-1][0][y]){
-					rest=1;
-					train_data[i][0][y]=0;
-				}else{
-					train_data[i][0][y]=1;
-					rest=0;
-				}
-			} else {train_data[i][0][y]=train_data[i-1][0][y];}
-
-		}
-		if (((int)train_data[i][0][0]^(int)train_data[i][0][1])&&((int)train_data[i][0][2]^(int)train_data[i][0][3])){
-			train_data[i++][1][0]=1;
-			if (i<NB_IN){
-				train_data[i][1][0]=1;
-				for (int x=0;x<DP_IN;x++)train_data[i][0][x]=train_data[i-1][0][x];
-			}
-		}else{
-			train_data[i][1][0]=0;
-		}
+	if (readMnistLabels(train_data,SIZE_DATA,TRAIN)){
+		ERROR("read train labels failed!\n");
+		free_data_mtrx(train_data,SIZE_DATA);
+		return 1;
+	}
+	double*** test_data=init_data_matrix(SIZE_TEST,DP_IN,DP_OUT);	
+	if (test_data==NULL){
+		ERROR("test_data is null!\n");
+		return 1;
+	}
+	if (readMnistIMG(test_data,SIZE_TEST,TEST)){
+		ERROR("read test img failed!\n");
+		free_data_mtrx(test_data,SIZE_TEST);
+		return 1;
+	}
+	if (readMnistLabels(test_data,SIZE_TEST,TEST)){
+		ERROR("read test labels failed!\n");
+		free_data_mtrx(test_data,SIZE_TEST);
+		return 1;
 	}
 	char* file="NNtest.nn";
 	nNetwork* NN=NULL;
 	if (fopen(file,"r")==NULL){
 		size_t len=4;
-		size_t depths[]={4,4,2,1};
-		NN = createNN( len, depths);
-		if (NN==NULL||FF(NN)){
+		size_t depths[]={DP_IN,128,64,DP_OUT};
+		int functions[]={RELU,RELU,RELU,SOFT};
+		NN = createNN( len, depths,functions);
+		if (NN==NULL||NN->failFlag){
 			ERROR("NN is NULL!\n");
 			freeNN(NN);
 		return 1;
 		}
 		fillNN(NN);
-		printNN(NN);
 		if (!writeNN (file, NN)){ERROR("failed to write");}
 		freeNN(NN);
 	}
 	NN = readNN(file);
-	if (NN==NULL||FF(NN)){
+	if (NN==NULL||NN->failFlag){
 		ERROR("NN 2 is NULL!\n");
 		freeNN(NN);
 		return 1;
 	}
 	printNN(NN);
-	double** input=(double**)malloc(NB_IN*sizeof(double*));
-	double** expected=(double**)malloc(NB_IN*sizeof(double*));
-	splitData(NB_IN,DP_IN,DP_OUT,train_data,&input,&expected);
-	printf ("data splitted\n");
-	free_data_mtrx(train_data,NB_IN);
-	train(expected, input, NN, NB_IN,28, LR, MSE,EPOCHS,DEBUG);
+	double** input=(double**)malloc(SIZE_DATA*sizeof(double*));
+	double** expected=(double**)malloc(SIZE_DATA*sizeof(double*));
 
-	for (int i=0;i<NB_IN;i++){
-		compute (input[i], NN,!DEBUG);
-		printf ("output: [");
-		fflush(stdout);
-		for (int y=0;y<DPTH(NN)[LEN(NN)-1];y++){
-			printf("%f",ACT(NN)[LEN(NN)-1][y][AN]);
-			if (y<DPTH(NN)[LEN(NN)-1]-1){
+	shuffle(train_data,SIZE_DATA,DP_IN,DP_OUT,3);	
+	splitData(SIZE_DATA,DP_IN,DP_OUT,train_data,&input,&expected);
+	normalize(input,SIZE_DATA,DP_IN,255);
+	printf ("data splitted\n");
+	free_data_mtrx(train_data,SIZE_DATA);
+	double** test_input=(double**)malloc(SIZE_TEST*sizeof(double*));
+	double** test_expected=(double**)malloc(SIZE_TEST*sizeof(double*));
+
+	splitData(SIZE_TEST,DP_IN,DP_OUT,test_data,&test_input,&test_expected);
+	normalize(test_input,SIZE_TEST,DP_IN,255);
+	free_data_mtrx(test_data,SIZE_TEST);
+	train(expected, input,test_expected,test_input, NN, SIZE_DATA, BATCH_SIZE, SIZE_TEST, LR, MULTICLASS,EPOCHS);
+	double costs[SIZE_TEST];
+	for (int i=0;i<SIZE_TEST;i++){
+		compute (test_input[i], NN);
+		costs[i]=multnode_cost(test_expected[i],NN->activations[NN->len-1],NN->depths[NN->len-1],MULTICLASS);
+		printf ("Testing\noutput[");
+		for (int y=0;y<NN->depths[NN->len-1];y++){
+		printf("%.1f",NN->activations[NN->len-1][y][AN]);
+			if (y<NN->depths[NN->len-1]-1){
 				printf (", ");
 			}
 		}
-		printf ("]\ncosts: [");
-		printf("%f",multnode_cost(expected[i],ACT(NN)[LEN(NN)-1],DPTH(NN)[NN->len-1],MSE));
-		printf ("]\n");
+		printf ("]\nExpected [");
+		for (int y=0;y<DPTH(NN)[LEN(NN)-1];y++){
+			printf("%.1f ",test_expected[i][y]);
+		}
+		printf("]\ncosts: ");
+		printf("%f\n",costs[i]);
 	}
-	printNN(NN);
-	free_mtrx(input, NB_IN);
-	free_mtrx(expected, NB_IN);
+	free_mtrx(input, SIZE_DATA);
+	free_mtrx(expected, SIZE_DATA);
+	free_mtrx(test_input, SIZE_TEST);
+	free_mtrx(test_expected,SIZE_TEST);
 	if (!writeNN (file, NN)){ERROR("failed to write");}
 	freeNN(NN);
 	return 0;
