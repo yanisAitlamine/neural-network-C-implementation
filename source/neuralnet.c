@@ -9,9 +9,17 @@ double rand_double(){
     return (double)rand()/(double)RAND_MAX;
 }
 
+void copy_int_list(int *source,int* target, int len){
+    for (int i=0;i<len; i++){
+	target[i]=source[i];
+    }
+}
+
 // Create an object neural network of a given length with given layer lenghts
-nNetwork* createNN(size_t len, size_t* depths){
-	printf("Creating Network of size %ld!\n",len);
+nNetwork* createNN(size_t len, size_t* depths,int* functions){
+#if DEBUG
+    printf("Creating Network of size %ld!\n",len);
+#endif	
 	nNetwork* NN=(nNetwork*)malloc(sizeof(nNetwork));
 	FF(NN)=false;
 	LEN(NN)=len;
@@ -20,6 +28,12 @@ nNetwork* createNN(size_t len, size_t* depths){
 	    FF(NN)=true;
 	    return NN;
 	}
+	FUNC(NN)=(int*)malloc(len*sizeof(int));
+	if (check_malloc(FUNC(NN),"function init failed!\n")){
+	    FF(NN)=true;
+	    return NN;
+	}
+	copy_int_list(functions,FUNC(NN),len);
 	W(NN)=(double***)malloc((len-1)*sizeof(double**));
 	if (check_malloc(W(NN),"Weights init failed!\n")){
 	    FF(NN)=true;
@@ -45,9 +59,13 @@ nNetwork* createNN(size_t len, size_t* depths){
 	    FF(NN)=true;
 	    return NN;
 	}
+#if DEBUG
 	printf("depths\t ");
+#endif
 	DPTH(NN)[0]=depths[0];
-	printf ("layer %d:%ld\t",1,depths[0]);
+#if DEBUG
+    printf ("layer %d:%ld\t",1,depths[0]);
+#endif
 	for (int i=0;i<len-1;i++){
 	    printf ("layer %d:%ld\t",i+2,depths[i+1]);
 	    DPTH(NN)[i+1]=depths[i+1];
@@ -59,7 +77,9 @@ nNetwork* createNN(size_t len, size_t* depths){
 	    if (alloc_mtrx(&(ACT(NN)[i]), DPTH(NN)[i],4)) return NN;
 	}
 	if (alloc_mtrx(&(ACT(NN)[len-1]), DPTH(NN)[len-1],4)) return NN;
-	printf("\nSuccesfully created!\n");
+#if DEBUG
+    printf("\nSuccesfully created!\n");
+#endif
 	return NN;
 }
 
@@ -89,23 +109,20 @@ bool alloc_table(double** mtrx, size_t len){
 
 //Initialize weights and bias with random numbers
 void fillNN(nNetwork* NN){
-    printf ("Filling neural net of size %ld!\n",LEN(NN));
     for (int i=0;i<LEN(NN)-1;i++){
         for (int x=0;x<DPTH(NN)[i];x++){
 	    for (int y=0; y<DPTH(NN)[i+1];y++){	
-		W(NN)[i][x][y]=rand_double()*0.01;
+		W(NN)[i][x][y]=rand_double();
 	    }
 	}
 	for (int y=0;y<DPTH(NN)[i+1];y++){
-	    B(NN)[i][y]=rand_double()*0.01;
+	    B(NN)[i][y]=rand_double();
 	}
     }
-    printf ("Filling done!\n");
 }
 
 //Update weights and bias with Grd and learing rate
-void updateNN(nNetwork* NN, double learning_rate, bool debug){
-    if (debug)printf ("updating neural net of size %ld with LR %f!\n",LEN(NN),learning_rate);
+void updateNN(nNetwork* NN, double learning_rate){
     for (int i=0;i<LEN(NN)-1;i++){
         for (int x=0;x<DPTH(NN)[i];x++){
 	    for (int y=0; y<DPTH(NN)[i+1];y++){	
@@ -131,7 +148,7 @@ void printNN(nNetwork* NN){
 		printf("[");
 		for (int y=0; y<DPTH(NN)[i+1];y++){
 		    if (y<1||y>DPTH(NN)[i+1]-2){
-			printf("%.1f",W(NN)[i][x][y]);
+			printf("%f",W(NN)[i][x][y]);
 		    }
 		    if (y==1)printf(",..,");
 		}
@@ -142,7 +159,7 @@ void printNN(nNetwork* NN){
 	printf("\n[");
     	for (int x=0;x<DPTH(NN)[i+1];x++){
 	    if(x<2||x>DPTH(NN)[i+1]-3){
-		printf("%.1f",B(NN)[i][x]);
+		printf("%f",B(NN)[i][x]);
 		if (x<DPTH(NN)[i+1]-1) printf(", ");
 	    }
 	    if (x==2)printf("..,");
@@ -153,7 +170,7 @@ void printNN(nNetwork* NN){
 
 
 //Print weights and bias Grd
-void printNNGrd(nNetwork* NN){
+void printGrd(nNetwork* NN){
     printf ("Printing neural net Grd of size %ld!\n",LEN(NN));
     for (int i=0;i<NN->len-1;i++){
 	printf ("===================================================================\n");
@@ -182,6 +199,42 @@ void printNNGrd(nNetwork* NN){
 	}
 	printf("]\n");
     } 
+}
+
+void printACT(nNetwork* NN){
+    printf ("Printing neural net activations of size %ld!\n",NN->len);
+    for (int i=0;i<NN->len;i++){
+	printf ("===================================================================\n");
+	printf("Layer %d\tlen: %ld\t\n",i,DPTH(NN)[i]);
+	printf ("===================================================================\n");
+	printf("[");
+    	for (int x=0;x<DPTH(NN)[i];x++){
+	    if(x<6||x>DPTH(NN)[i]-5){
+		printf("%f",ACT(NN)[i][x][AN]);
+		if (x<DPTH(NN)[i]-1) printf(", ");
+	    }
+	    if (x==6)printf("..,");
+	}
+	printf("]\n");
+    }
+}
+
+void printERROR(nNetwork* NN){
+    printf ("Printing neural net error of size %ld!\n",NN->len);
+    for (int i=0;i<NN->len;i++){
+	printf ("===================================================================\n");
+	printf("Layer %d\tlen: %ld\t\n",i,DPTH(NN)[i]);
+	printf ("===================================================================\n");
+	printf("[");
+    	for (int x=0;x<DPTH(NN)[i];x++){
+	    if(x<6||x>DPTH(NN)[i]-5){
+		printf("%f",ACT(NN)[i][x][DERIV]);
+		if (x<DPTH(NN)[i]-1) printf(", ");
+	    }
+	    if (x==6)printf("..,");
+	}
+	printf("]\n");
+    }
 }
 
 // Free a neural network object
