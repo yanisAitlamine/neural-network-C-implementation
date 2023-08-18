@@ -322,10 +322,12 @@ void train(double **expected, double **input,double **test_expected, double **te
         for (int x=0;x<size_data;x+=size_batch){
             if (x>size_data-size_batch){size_batch=size_data-x;}
             batch(expected,input,x,NN,size_batch,learning_rate,function);
-            for (int y=0;y<=10;y++) {
-                if (y*(size_data/10)<x&&x<(y+1)*(size_data/10)) {
-                    printf("=");
-                    fflush(stdout);              
+            for(int z=0;z<=10;z++){
+                for (int y=0;y<=10;y++) {
+                    if (y*(size_data/10)==x&&z*(epochs/10)==i) {
+                        printf("=");
+                        fflush(stdout);              
+                    }
                 }
             }
         }
