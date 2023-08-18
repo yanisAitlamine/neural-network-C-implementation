@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include "compute.h"
-
+#define DEBUGCPT false
 double sigmoid(double n){
     return (1/(1+pow(EULER_NUMBER, -n)));
 }
@@ -97,7 +97,7 @@ void compute(double *input, nNetwork *NN){
         for (y=0;y<DPTH(NN)[i];y++){
             ACT(NN)[i][y][ZN]=B(NN)[i-1][y];
             for (x=0;x<DPTH(NN)[i-1];x++){
-                ACT(NN)[i][y][ZN]+=(NN->activations[i-1][x][0]*W(NN)[i-1][x][y]); 
+                ACT(NN)[i][y][ZN]+=(NN->activations[i-1][x][0]*W(NN)[i-1][x][y]);
             }
         } 
         activation(NN,i);
@@ -275,7 +275,8 @@ double test(nNetwork* NN, double** test_input,double **test_expected,int size_da
     for (int i=0;i<size_data;i++){
         compute (test_input[i], NN);
         costs[i]=multnode_cost(test_expected[i],NN->activations[NN->len-1],NN->depths[NN->len-1],MULTICLASS);
-#if DEBUG 
+#define DEBUGTEST false
+#if DEBUGTEST 
         printf ("Testing\noutput[");
         for (int y=0;y<NN->depths[NN->len-1];y++){
         printf("%f",NN->activations[NN->len-1][y][AN]);
@@ -301,17 +302,19 @@ void batch(double **expected, double **input,int rank, nNetwork* NN, int size_ba
             compute (input[i+rank], NN);
             compute_grd(expected[i+rank],NN,function);
 #if DEBUGCPT
-            printf ("\n\nExpected [");
-            for (int y=0;y<DPTH(NN)[LEN(NN)-1];y++){
-                printf("%.1f ",expected[i+rank][y]);
+            if(rank<5*size_batch&&i==0){
+                printf ("\n\nExpected [");
+                for (int y=0;y<DPTH(NN)[LEN(NN)-1];y++){
+                    printf("%.1f ",expected[i+rank][y]);
+                }
+                printf("]\n");
+                printACT(NN);
+                printERROR(NN);
+                printGrd(NN);
             }
-            printf("]\n");
-            printACT(NN);
-            printERROR(NN);
-            printGrd(NN);
 #endif
         }
-	multiply_grd(NN, pow(size_batch,-1));
+	//multiply_grd(NN, pow(size_batch,-1));
         updateNN(NN,learning_rate);
 }
 

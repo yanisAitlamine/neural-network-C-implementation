@@ -179,11 +179,12 @@ bool writeNN(char* filename, nNetwork* NN){
 #endif
     return true;
 }
-
+#define DEBUGIO true
 //read a nNetwork from a file
 nNetwork* readNN(char* filename){
-#if DEBUG
+#if DEBUGIO
     printf ("Loading neural networks!\n");
+    fflush(stdout);
 #endif
     FILE* file=NULL;
     file = fopen(filename, "rb");
@@ -192,8 +193,9 @@ nNetwork* readNN(char* filename){
     if (fread (&len, sizeof(size_t), 1, file)!= 1){
 	return NULL;
     }
-#if DEBUG
+#if DEBUGIO
     printf ("=");
+    fflush(stdout);
 #endif
     size_t* depths=(size_t*)malloc(len*sizeof(size_t));
     if (fread(depths, sizeof(size_t), len,file)!=len){
@@ -206,8 +208,9 @@ nNetwork* readNN(char* filename){
 	free(functions);
 	return NULL;
     }
-#if DEBUG
+#if DEBUGIO
     printf ("=");
+    fflush(stdout);
 #endif
     nNetwork* NN=createNN(len,depths,functions);
     free(depths);

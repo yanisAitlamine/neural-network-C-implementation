@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stddef.h>
+#include <math.h>
 #include "errors.h"
 #include "neuralnet.h"
 
@@ -123,6 +124,20 @@ void fillNN(nNetwork* NN){
     }
 }
 
+//Initialize weights and bias with random numbers
+void initGRD(nNetwork* NN){
+    for (int i=0;i<LEN(NN)-1;i++){
+        for (int x=0;x<DPTH(NN)[i];x++){
+	    for (int y=0; y<DPTH(NN)[i+1];y++){	
+		WGRD(NN)[i][x][y]=0;
+	    }
+	}
+	for (int y=0;y<DPTH(NN)[i+1];y++){
+	    B(NN)[i][y]=0;
+	}
+    }
+}
+
 //Update weights and bias with Grd and learing rate
 void updateNN(nNetwork* NN, double learning_rate){
     for (int i=0;i<LEN(NN)-1;i++){
@@ -184,8 +199,8 @@ void printGrd(nNetwork* NN){
 		for (int y=0; y<DPTH(NN)[i+1];y++){
 		    if (y<1||y>DPTH(NN)[i+1]-2||DPTH(NN)[i+1]<10){
 			printf("%f",WGRD(NN)[i][x][y]);
+			if (y<DPTH(NN)[i+1]-1)printf (", ");
 		    }
-		    if (y<DPTH(NN)[i+1]-1)printf (", ");
 		    if (y==1&&DPTH(NN)[i+1]>10)printf(",..,");
 		}
 		printf("]");
@@ -234,22 +249,26 @@ void printERROR(nNetwork* NN){
 		printf("%f",ACT(NN)[i][x][DERIV]);
 		if (x<DPTH(NN)[i]-1) printf(", ");
 	    }
-	    if (x==6)printf("..,");
+	    else if (x==6)printf("..,");
 	}
 	printf("]\n");
     }
 }
 
+#define DEBUGFREE false
 // Free a neural network object
 void freeNN(nNetwork* NN){
     if (NN==NULL){return;}
+#if DEBUGFREE
     printf ("Free network of size %ld!\n",LEN(NN));
+#endif
     free3D_mtrx(W(NN),LEN(NN)-1,DPTH(NN));
     free3D_mtrx(WGRD(NN),LEN(NN)-1,DPTH(NN));
     free_mtrx(B(NN),LEN(NN)-1);
     free_mtrx(BGRD(NN),LEN(NN)-1);
     free3D_mtrx(ACT(NN),LEN(NN),DPTH(NN));
     free(DPTH(NN));
+    free(FUNC(NN));
     free(NN);
 }
 

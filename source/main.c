@@ -8,12 +8,12 @@
 #include "errors.h"
 #include "in_outNN.h"
 #include "compute.h"
-#define SIZE_DATA 3 
+#define SIZE_DATA 60000 
 #define DP_IN 784
 #define DP_OUT 10
 #define LR 0.01
-#define EPOCHS 2
-#define BATCH_SIZE 3
+#define EPOCHS 10
+#define BATCH_SIZE 100
 #define TRAIN true
 #define TEST false
 #define SIZE_TEST 10
@@ -52,22 +52,29 @@ int main()
 		return 1;
 	}
 	char* file="NNtest.nn";
+	nNetwork* nn=NULL;
 	nNetwork* NN=NULL;
-	if (fopen(file,"r")==NULL){
+	FILE* fileptr=fopen(file,"r");
+	if (fileptr==NULL){
 		size_t len=4;
 		size_t depths[]={DP_IN,128,64,DP_OUT};
 		int functions[]={RELU,RELU,RELU,SOFT};
-		NN = createNN( len, depths,functions);
-		if (NN==NULL||NN->failFlag){
+		nn = createNN( len, depths,functions);
+		if (nn==NULL||nn->failFlag){
 			ERROR("NN is NULL!\n");
-			freeNN(NN);
+			freeNN(nn);
 		return 1;
 		}
-		fillNN(NN);
-		if (!writeNN (file, NN)){ERROR("failed to write");}
-		freeNN(NN);
+		fillNN(nn);
+		if (!writeNN (file, nn)){ERROR("failed to write");}
+		freeNN(nn);
+		printf("Initiated and saved correctly\n");
+		fflush(stdout);
+	}else{
+		fclose(fileptr);
 	}
 	NN = readNN(file);
+	initGRD(NN);
 	if (NN==NULL||NN->failFlag){
 		ERROR("NN 2 is NULL!\n");
 		freeNN(NN);

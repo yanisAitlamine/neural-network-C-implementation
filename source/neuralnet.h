@@ -2,8 +2,7 @@
 #define NN_H
 #include <stdbool.h>
 #define DEBUG false
-#define DEBUGCPT false
-#define	DEBUGIO false
+
 //actual activation
 #define AN 0
 //not smoothed activation
@@ -46,6 +45,7 @@ nNetwork* createNN(size_t len, size_t* depths, int* functions);
 bool alloc_mtrx(double ***mtrx, size_t len, size_t depth);
 bool alloc_table(double** mtrx, size_t len);
 void fillNN(nNetwork* NN);
+void initGRD(nNetwork* NN);
 void updateNN(nNetwork* NN, double learning_rate);
 void printNN(nNetwork* NN);
 void printGrd(nNetwork* NN);
