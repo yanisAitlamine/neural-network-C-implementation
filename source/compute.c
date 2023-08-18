@@ -127,13 +127,14 @@ void normalize(double** input,int size_data,int len_row, double max){
     }
 }
 
-void printTrainData(double** expected, double** input,int len_data,int depthinput, double depthoutput){
-	for (int i=0;i<len_data;i++){
-		printf ("\nInput %d: ",i);
-		for (int y=0;y<depthinput;y++) printf("%.1f\t",input[i][y]);
-		printf ("\nExpected %d: ",i);
-		for (int y=0;y<depthoutput;y++) printf("%.1f\t",expected[i][y]);
-	}
+void printData(double** expected, double** input,int len_data,int depthinput, double depthoutput){
+    for (int i=0;i<len_data;i++){
+	printf ("\nInput %d: ",i);
+	for (int y=0;y<depthinput;y++) printf("%.1f\t",input[i][y]);
+	printf ("\nExpected %d: ",i);
+        for (int y=0;y<depthoutput;y++) printf("%.1f\t",expected[i][y]);
+    }
+    printf("\n");
 }
 
 // compute cost
@@ -222,7 +223,6 @@ void compute_grd(double *expected, nNetwork *NN, int function){
         switch (function){
             case MULTICLASS:
                 ACT(NN)[LEN(NN)-1][i][DERIV]=expected[i]-NN->activations[LEN(NN)-1][i][AN];
-                printf("%f-%f=%f\n",expected[i],NN->activations[LEN(NN)-1][i][AN],ACT(NN)[LEN(NN)-1][i][DERIV]);
             break;
             case BINARY:
                 ACT(NN)[LEN(NN)-1][i][DERIV]=NN->activations[LEN(NN)-1][i][ZNPRIME]*binary_prime(expected[i],NN->activations[LEN(NN)-1][i][AN]);
@@ -329,9 +329,12 @@ void train(double **expected, double **input,double **test_expected, double **te
                 }
             }
         }
-
-        current_cost=test(NN,test_input,test_expected,size_test);
-        printf(">epochs %d cost: %f\n",i,current_cost);
+        for (int y=0;y<=10;y++) {
+            if (y*(epochs/10)==i) {
+                current_cost=test(NN,test_input,test_expected,size_test);
+               printf(">epochs %d cost: %f\n",i,current_cost);
+            }
+        }
     }
     printf(">Finished\n");
 }

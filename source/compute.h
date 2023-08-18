@@ -29,7 +29,7 @@ void compute_grd(double *expected, nNetwork *NN, int function);
 double sum_W_Zn_Deriv(int rank, int ndnum, nNetwork* NN);
 void batch(double **expected, double **input,int rank, nNetwork* NN, int size_batch, double learning_rate, int function);
 void train(double **expected, double **input,double **test_expected, double **test_input, nNetwork* NN, int size_data, int size_batch,int size_test, double learning_rate, int function, int epochs);
-void printTrainData(double** expected, double** input,int len_data,int depthinput, double depthoutput);
+void printData(double** expected, double** input,int len_data,int depthinput, double depthoutput);
 void shuffle(double*** data,int len,int depth_in,int depth_out,int rounds);
 void swapTables(double ***data,int base,int target,int depth_in,int depth_out);
 double test(nNetwork* NN, double** test_input,double **test_expected,int size_data);
