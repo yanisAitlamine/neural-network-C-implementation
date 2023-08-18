@@ -2,7 +2,7 @@
 #define NN_H
 #include <stdbool.h>
 #define DEBUG false
-#define DEBUGCPT true
+#define DEBUGCPT false
 #define	DEBUGIO false
 //actual activation
 #define AN 0

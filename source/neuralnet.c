@@ -67,7 +67,9 @@ nNetwork* createNN(size_t len, size_t* depths,int* functions){
     printf ("layer %d:%ld\t",1,depths[0]);
 #endif
 	for (int i=0;i<len-1;i++){
+#if DEBUG
 	    printf ("layer %d:%ld\t",i+2,depths[i+1]);
+#endif
 	    DPTH(NN)[i+1]=depths[i+1];
  	    if(alloc_mtrx(&(WGRD(NN)[i]), DPTH(NN)[i],DPTH(NN)[i+1])) return NN;
 	    if (alloc_table(&(BGRD(NN)[i]), DPTH(NN)[i+1])) return NN;
@@ -138,31 +140,31 @@ void updateNN(nNetwork* NN, double learning_rate){
 
 //Print weights and bias
 void printNN(nNetwork* NN){
-    printf ("Printing neural net of size %ld!\n",NN->len);
+    printf ("\nPrinting neural net of size %ld!\n",NN->len);
     for (int i=0;i<NN->len-1;i++){
 	printf ("===================================================================\n");
 	printf("Layer %d->%d\tlen: %ld\tdepth: %ld\n",i+1,i+2,DPTH(NN)[i],DPTH(NN)[i+1]);
 	printf ("===================================================================\n");
     	for (int x=0;x<DPTH(NN)[i];x++){
-	    if (x<5||x>DPTH(NN)[i]-5){
+	    if (x<5||x>DPTH(NN)[i]-5||DPTH(NN)[i]<10){
 		printf("[");
 		for (int y=0; y<DPTH(NN)[i+1];y++){
-		    if (y<1||y>DPTH(NN)[i+1]-2){
+		    if (y<1||y>DPTH(NN)[i+1]-2||DPTH(NN)[i+1]<10){
 			printf("%f",W(NN)[i][x][y]);
 		    }
-		    if (y==1)printf(",..,");
+		    if (y==1&&DPTH(NN)[i+1]>10)printf(",..,");
 		}
 		printf("]");
 	    }
-	    if (x==5)printf(",..,");
+	    if (x==5&&DPTH(NN)[i]>10)printf(",..,");
 	}    	
 	printf("\n[");
     	for (int x=0;x<DPTH(NN)[i+1];x++){
-	    if(x<2||x>DPTH(NN)[i+1]-3){
+	    if(x<2||x>DPTH(NN)[i+1]-3||DPTH(NN)[i+1]<10){
 		printf("%f",B(NN)[i][x]);
 		if (x<DPTH(NN)[i+1]-1) printf(", ");
 	    }
-	    if (x==2)printf("..,");
+	    if (x==2&&DPTH(NN)[i+1]>10)printf("..,");
 	}
 	printf("]\n");
     } 
@@ -171,38 +173,39 @@ void printNN(nNetwork* NN){
 
 //Print weights and bias Grd
 void printGrd(nNetwork* NN){
-    printf ("Printing neural net Grd of size %ld!\n",LEN(NN));
+    printf ("\nPrinting neural net Grd of size %ld!\n",LEN(NN));
     for (int i=0;i<NN->len-1;i++){
 	printf ("===================================================================\n");
 	printf("Layer %d->%d\tlen: %ld\tdepth: %ld\n",i+1,i+2,DPTH(NN)[i],DPTH(NN)[i+1]);
 	printf ("===================================================================\n");
     	for (int x=0;x<DPTH(NN)[i];x++){
-	    if (x<5||x>DPTH(NN)[i]-5){
+	    if (x<5||x>DPTH(NN)[i]-5||DPTH(NN)[i]<10){
 		printf("[");
 		for (int y=0; y<DPTH(NN)[i+1];y++){
-		    if (y<1||y>DPTH(NN)[i+1]-2){
+		    if (y<1||y>DPTH(NN)[i+1]-2||DPTH(NN)[i+1]<10){
 			printf("%f",WGRD(NN)[i][x][y]);
 		    }
-		    if (y==1)printf(",..,");
+		    if (y<DPTH(NN)[i+1]-1)printf (", ");
+		    if (y==1&&DPTH(NN)[i+1]>10)printf(",..,");
 		}
 		printf("]");
 	    }
-	    if (x==5)printf(",..,");
+	    if (x==5&&DPTH(NN)[i]>10)printf(",..,");
 	}    	
 	printf("\n[");
     	for (int x=0;x<DPTH(NN)[i+1];x++){
-	    if(x<4||x>DPTH(NN)[i+1]-5){
+	    if(x<4||x>DPTH(NN)[i+1]-5||DPTH(NN)[i+1]<10){
 		printf("%f",BGRD(NN)[i][x]);
 		if (x<DPTH(NN)[i+1]-1) printf(", ");
 	    }
-	    if (x==5)printf("..,");
+	    if (x==5&&DPTH(NN)[i+1]>10)printf("..,");
 	}
 	printf("]\n");
     } 
 }
 
 void printACT(nNetwork* NN){
-    printf ("Printing neural net activations of size %ld!\n",NN->len);
+    printf ("\nPrinting neural net activations of size %ld!\n",NN->len);
     for (int i=0;i<NN->len;i++){
 	printf ("===================================================================\n");
 	printf("Layer %d\tlen: %ld\t\n",i,DPTH(NN)[i]);
@@ -220,7 +223,7 @@ void printACT(nNetwork* NN){
 }
 
 void printERROR(nNetwork* NN){
-    printf ("Printing neural net error of size %ld!\n",NN->len);
+    printf ("\nPrinting neural net error of size %ld!\n",NN->len);
     for (int i=0;i<NN->len;i++){
 	printf ("===================================================================\n");
 	printf("Layer %d\tlen: %ld\t\n",i,DPTH(NN)[i]);
