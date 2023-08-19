@@ -8,6 +8,7 @@
 #define PIXEL_IMG 784
 #define SQR_IMG 28
 #define SIZE_OUT 10
+#define DEBUGIO true
 
 bool readMnistLabels(double ***data,int len_data,bool mode){
     char* labelfile=mode?"/home/yanis/projects/train-labels-idx1-ubyte":"/home/yanis/projects/t10k-labels-idx1-ubyte";
@@ -161,17 +162,19 @@ bool writeNN(char* filename, nNetwork* NN){
     }
     if (fwrite (FUNC(NN), sizeof(int), LEN(NN), file)!=NN->len){
 	return false;
-   }
+    }
 #if DEBUG
     printf ("=");
 #endif
-    for (int i=0; i<LEN(NN)-1; i++){
-	if (!writeMtrx(file, W(NN)[i], DPTH(NN)[i], NN->depths[i+1])){ 
-	    return false;
-	}
-	if (fwrite (B(NN)[i], sizeof(double*), DPTH(NN)[i+1], file)!= NN->depths[i+1]){
-    	    return false;
-	}
+    size_t toWrite=0;
+    for (int x=0;x<X(W(NN));x++)toWrite+=Y(W(NN),w)*Z(W(NN),x);
+    if (fwrite (W(NN), sizeof(double), toWrite, file)!=toWrite){
+	return false;
+    }
+    toWrite=0;
+    for (int x=0;x<X(B(NN));x++)toWrite+=Y(B(NN),w)*Z(B(NN),x);
+    if (fwrite (B(NN), sizeof(double), toWrite, file)!=toWrite){
+	return false;
     }
     if (fclose (file) == EOF){return false;}
 #if DEBUG
@@ -179,7 +182,6 @@ bool writeNN(char* filename, nNetwork* NN){
 #endif
     return true;
 }
-#define DEBUGIO true
 //read a nNetwork from a file
 nNetwork* readNN(char* filename){
 #if DEBUGIO
@@ -213,48 +215,29 @@ nNetwork* readNN(char* filename){
     fflush(stdout);
 #endif
     nNetwork* NN=createNN(len,depths,functions);
-    free(depths);
-    for (int i=0; i<LEN(NN)-1; i++){
-	if (!readMtrx (file, W(NN)[i], DPTH(NN)[i], NN->depths[i+1])){ 	    
-	    freeNN(NN);
-	    return NULL;
-	}
-	if (fread (B(NN)[i], sizeof(double*), DPTH(NN)[i+1], file)!= NN->depths[i+1]){ 	    
-	    freeNN(NN);
-	    return NULL;
-	}
+    size_t toWrite=0;
+    for (int x=0;x<LEN(NN)-1;x++)toWrite+=depths[x]*depths[x+1];
+    if (fread (W(NN)->data, sizeof(double), toWrite, file)!=toWrite){
+	free(NN);
+	free(depths);
+	free(functions);
+	return NULL;
     }
+    toWrite=0;
+    for (int x=1;LEN(NN);x++)toWrite+=depths[x];
+    if (fread (B(NN)->data, sizeof(double), toWrite, file)!=toWrite){
+	free(NN);
+	free(depths);
+	free(functions);
+	return NULL;
+    }
+    free(depths);
+    free(functions);
     printf (">Loaded!\n");
     if (fclose (file)== EOF){
 	freeNN(NN);
 	return NULL;
     }
     return NN;
-}
-
-//read matrix values from a file
-bool readMtrx (FILE* file, double** mtrx, size_t len, size_t depth){
-#if DEBUG
-    printf ("=");
-#endif
-    for (int x=0;x<len;x++){
-        if (fread (mtrx[x], sizeof(double), depth, file)!= depth){ 
-		return false;
-	}
-    }
-    return true;
-}
-
-//write mtrx values to a file
-bool writeMtrx (FILE* file, double** mtrx, size_t len, size_t depth){
-#if DEBUG
-	printf ("=");
-#endif 
-	for (int x=0;x<len;x++){
-	    if (fwrite (mtrx[x], sizeof(double), depth, file)!= depth){
-    	    return false;
-	    }
-        }
-    return true;
 }
 

@@ -1,6 +1,7 @@
 #ifndef NN_H
 #define NN_H
 #include <stdbool.h>
+#include "mtrx.h"
 #define DEBUG false
 
 //actual activation
@@ -32,14 +33,13 @@ struct nNetwork{
 	size_t len;
 	size_t* depths;
 	int *functions;
-	double*** weights;
-	double** bias;
-	double*** weightsGrd;
-	double** biasGrd;
-	double*** activations;
+	mtrx_vector* weights;
+	mtrx_vector* bias;
+	mtrx_vector* weightsGrd;
+	mtrx_vector* biasGrd;
+	mtrx_vector* activations;
 };
 
-double rand_double();
 void copy_int_list(int *source, int *functions,int len);
 nNetwork* createNN(size_t len, size_t* depths, int* functions);
 bool alloc_mtrx(double ***mtrx, size_t len, size_t depth);
