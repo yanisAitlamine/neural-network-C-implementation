@@ -1,14 +1,6 @@
 #ifndef CMPT
 #define CMPT
-#define EULER_NUMBER 2.71828182845904523536
-#define REGRESSION 0
-#define BINARY 1
-#define SQR_REG 2
-#define MULTICLASS 3
-#define MAE 4
-#define MSE 5
-#define PRODUCT 6
-#define ERR 10000000000000000.0
+#include "utils.h"
 #include "neuralnet.h"
 
 double sigmoid(double n);

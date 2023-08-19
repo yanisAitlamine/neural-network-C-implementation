@@ -2,105 +2,75 @@
 #include <stdlib.h>
 #include <math.h>
 #include "compute.h"
+#include "utils.h"
 #define DEBUGCPT false
-double sigmoid(double n){
-    return (1/(1+pow(EULER_NUMBER, -n)));
-}
-
-double sigmoidprime(double n){
-    if (n==1)return 0.0001;
-    if (n==0)return -0.0001;
-    return (n)*(1-(n));
-}
-
-double Relu(double n){
-    if(n<0)return 0;
-    return n;
-}
-
-double ReluPrime(double n){
-    if (n)return 1;
-    return 0;
-}
 
 // Softmax activation function
-void softmax(nNetwork* NN, int rank) {
-    double max_val = ACT(NN)[rank][0][ZN];
-    for (int i = 1; i < DPTH(NN)[rank]; i++) {
-        if (ACT(NN)[rank][i][ZN] > max_val) {
-            max_val = ACT(NN)[rank][i][ZN];
-        }
-    }
+void softmax(nNetwork* NN, int layer) {
+    double max_val = max_mtrx(ZN(NN),layer);
 
     double sum_exp = 0.0;
+    add_mtrx(ACT(NN),layer,-max_val); 
     for (int i = 0; i < DPTH(NN)[rank]; i++) {
-        ACT(NN)[rank][i][AN] = exp( ACT(NN)[rank][i][ZN]- max_val);
-        sum_exp +=  ACT(NN)[rank][i][AN];
+        sum_exp +=  DATA(ACT(NN),get_index(ACT(NN),layer,i,0));
     }
 
-    for (int i = 0; i < DPTH(NN)[rank]; i++) {
-         ACT(NN)[rank][i][AN] /= sum_exp;
-    }
+    exp_mtrx(ACT(NN),layer);
+    divide_mtrx(ACT(NN),layer,sum_exp);
 }
 
 // Derivative of softmax
-void softmaxPrime(nNetwork *NN,int rank) {
-    for (int i = 0; i < DPTH(NN)[rank]; i++) {
-        ACT(NN)[rank][i][DERIV] = ACT(NN)[rank][i][AN] * (1.0 - ACT(NN)[rank][i][AN]);
+void softmaxPrime(nNetwork *NN,int layer,int x) {
+    for (int i = 0; i < DPTH(NN)[layer]; i++) {
+        if (i==x) {
+            DATA(ZNP(NN),get_index(ZNP(NN),layer,x,0)) += DATA(ACT(NN),get_index(ACT(NN),layer,i,0)) * (1.0 - DATA(ACT(NN),get_index(ACT(NN),layer,i,0)));
+        }else{
+            DATA(ZNP(NN),get_index(ZNP(NN),layer,x,0)) += DATA(ACT(NN),get_index(ACT(NN),layer,i,0)) * (- DATA(ACT(NN),get_index(ACT(NN),layer,x,0)));
+        }
     }
 }
 
-void activation(nNetwork *NN, int rank){
-    int y;
-    switch (FUNC(NN)[rank]){
+void activation(nNetwork *NN, int layer){
+    affect_values(ZN(NN),ACT(NN),layer,layer);
+    switch (FUNC(NN)[layer]){
         case SIG:
-            for(y=0;y<DPTH(NN)[rank];y++){
-                ACT(NN)[rank][y][AN]=sigmoid(ACT(NN)[rank][y][ZN]);
-
-            }
+            sigmoid_mtrx(ACT(NN),layer);
         break;
         case RELU:
-            for(y=0;y<DPTH(NN)[rank];y++){
-                ACT(NN)[rank][y][AN]=Relu(ACT(NN)[rank][y][ZN]);
-            }
+            Relu_mtrx(ACT(NN),layer);
         break;
         case SOFT:
-            softmax(NN,rank);
+            softmax(NN,layer);
         break;
     }
 }
 
-void derivActivation(nNetwork *NN,int rank){
-    int y;
-    switch (FUNC(NN)[rank]){
+void derivActivation(nNetwork *NN,int layer){
+    switch (FUNC(NN)[layer]){
         case SIG:
-            for(y=0;y<DPTH(NN)[rank];y++){
-                ACT(NN)[rank][y][ZNPRIME]=sigmoidprime(ACT(NN)[rank][y][AN]);
-
-            }
+            affect_values(ACT(NN),ZNP(NN),layer,layer);
+            sigmoidp_mtrx(ZNP(NN),layer);
         break;
         case RELU:
-            for(y=0;y<DPTH(NN)[rank];y++){
-                ACT(NN)[rank][y][ZNPRIME]=ReluPrime(ACT(NN)[rank][y][AN]);
-            }
+            affect_values(ZN(NN),ZNP(NN),layer,layer);
+            Relup_mtrx(ZNP(NN),layer);
         break;
         case SOFT:
-            softmaxPrime(NN,rank);
+            init_mtrx(ZNP(NN),layer);
+            softmaxPrime(NN,layer);
         break;
     }
 }
 
-void compute(double *input, nNetwork *NN){
-    int i,y,x;
-    for (i=0;i<DPTH(NN)[0];i++){ACT(NN)[0][i][0]=input[i];}
-    for (i=1;i<LEN(NN);i++){
-        for (y=0;y<DPTH(NN)[i];y++){
-            ACT(NN)[i][y][ZN]=B(NN)[i-1][y];
-            for (x=0;x<DPTH(NN)[i-1];x++){
-                ACT(NN)[i][y][ZN]+=(NN->activations[i-1][x][0]*W(NN)[i-1][x][y]);
-            }
-        } 
-        activation(NN,i);
+void compute(mtrx_vector *input, int x, nNetwork *NN){
+    int i;
+    affect_values(input,ACT(NN),x,0);
+    mtrx_vector* buff;
+    for (i=0;i<LEN(NN)-1;i++){
+        buff=dot(W(NN),ACT(NN),i,i);
+        affect_values(buff,ZN(NN),0,i+1);
+        add_mtrx_mtrx(B(NN),ZN(NN),i,i+1);
+        activation(NN,i+1);
     }
 }
 

@@ -1,7 +1,6 @@
 #ifndef __ERRORS__
 #define __ERRORS__
 #include <stdbool.h>
-#include "neuralnet.h"
 
 #define ERROR(message) printf("%s",message)
 

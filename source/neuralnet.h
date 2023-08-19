@@ -4,15 +4,6 @@
 #include "mtrx.h"
 #define DEBUG false
 
-//actual activation
-#define AN 0
-//not smoothed activation
-#define	ZN 1
-//dC/dAn
-#define DERIV 2
-//prime of smoothing func on zn
-#define ZNPRIME	3
-
 #define SIG 4
 #define RELU 5
 #define SOFT 6
@@ -26,22 +17,29 @@
 #define BGRD(nn) (nn->biasGrd)
 #define ACT(nn) (nn->activations)
 #define FUNC(nn) (nn->functions)
+#define ZN(nn) (nn->zn)
+#define ERR(nn) (nn->error)
+#define ZNP(nn) (nn->znprime)
 
 typedef struct nNetwork nNetwork;
 struct nNetwork{
 	bool failFlag;
 	size_t len;
 	size_t* depths;
-	int *functions;
+	size_t *functions;
 	mtrx_vector* weights;
 	mtrx_vector* bias;
 	mtrx_vector* weightsGrd;
 	mtrx_vector* biasGrd;
 	mtrx_vector* activations;
+	mtrx_vector* error;
+	mtrx_vector* zn;
+	mtrx_vector* znprime;
+
 };
 
-void copy_int_list(int *source, int *functions,int len);
-nNetwork* createNN(size_t len, size_t* depths, int* functions);
+void copy_size_list(size_t *source, size_t *target,size_t len);
+nNetwork* createNN(size_t len, size_t* depths, size_t* functions);
 bool alloc_mtrx(double ***mtrx, size_t len, size_t depth);
 bool alloc_table(double** mtrx, size_t len);
 void fillNN(nNetwork* NN);
