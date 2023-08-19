@@ -50,10 +50,4 @@ void printGrd(nNetwork* NN);
 void printACT(nNetwork* NN);
 void printERROR(nNetwork* NN);
 void freeNN (nNetwork* NN);
-void free_mtrx(double **data, size_t depth);
-void multiply_grd(nNetwork* NN, double value);
-void printTrainData(double** expected, double** input,int len_data,int depthinput, double depthoutput);
-void free3D_mtrx(double ***data, size_t len, size_t* depths);
-void normalize(double **input,int size_data,int len_row,double max);
-
 #endif

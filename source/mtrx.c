@@ -49,12 +49,35 @@ mtrx_vector* create_vector(size_t len, size_t* y, size_t* z){
     }
     return v;
 }
+
+mtrx* create_mtrx(size_t len, size_t depth){
+#if DEBUGINIT
+    printf("\nCreating vector!\n");
+    fflush(stdout);
+#endif
+    mtrx *v=malloc(sizeof(mtrx_vector));
+    X(v)=len;
+    v->y=depth;
+    v->data=malloc(X(v)*(v->y)*sizeof(double*));
+    if (check_malloc(v->data,"Mtrx malloc failed!\n")){
+        free_mtrx(v);
+        return NULL;
+    }
+    return v;
+}
 //free vector
 void free_vector(mtrx_vector *v){
     if(v==NULL)return;
     if (v->data!=NULL)free(v->data);
     if(v->y!=NULL)free(v->y);
     if(v->z!=NULL)free(v->z);
+    free(v);
+}
+
+//free mtrx
+void free_mtrx(mtrx *v){
+    if(v==NULL)return;
+    if (v->data!=NULL)free(v->data);
     free(v);
 }
 
@@ -76,6 +99,46 @@ int get_index(mtrx_vector *v,int x,int y,int z){
     }
     return index+z;
 }
+
+double *get_mtrx(mtrx_vector *v, int x){
+    double* result=malloc(Y(v,x)*Z(v,x)*sizeof(double));
+    for (int i=0;i<Y(v,x);i++){
+        for (int j=0;j<Z(v,x);j++){
+           result[i*Z(v,x)+j]=DATA(v,get_index(v,x,i,j)); 
+        }
+    }
+    return result;
+}
+
+double *get_list_from_m(mtrx *v, int x){
+    double* result=malloc(v->y*sizeof(double));
+    for (int i=0;i<v->y;i++){
+        result[i]=DATA(v,x*v->y+i); 
+    }
+    return result;
+}
+
+void write_list_in_vector(double* list,mtrx_vector *v, int x,size_t size_list){
+    int index=get_index(v,x,0,0);
+    for (int i=0;i<size_list;i++){
+        DATA(v,index+i)=list[i];
+    }
+}
+
+void write_list(double* list,mtrx *v, int x,size_t size_list){
+    for (int i=0;i<size_list;i++){
+        DATA(v,x*v->y+i)=list[i];
+    }
+}
+
+//split data set if entries and expected are a simple list of activations
+void splitData(int num_obj,size_t len_in, size_t len_out,double ***data, mtrx* input, mtrx* expected){
+    for (int i=0;i<num_obj;i++){
+        write_list(data[i][0],input,i,len_in);
+        write_list(data[i][1],expected,i,len_out);
+    }
+}
+
 //print the whole vector
 void print_vector(mtrx_vector *v){
     for (int i=0;i<X(v);i++){
@@ -122,6 +185,17 @@ void init_mtrx_rand(mtrx_vector *v,int x){
     }
 }
 
+void normalize(mtrx* input, double max){
+    int i,j;
+    for (i=0;i<X(input);i++){
+        for (j=0;j<input->y;j++){
+         DATA(input,i*input->y+j)/=max;
+        }
+    }
+}
+
+
+
 void add_mtrx(mtrx_vector *v,int x,double r){
     for (int i=0;i<Y(v,x);i++){
         for (int j=0;j<Z(v,x);j++){
@@ -152,6 +226,18 @@ void multiply_mtrx(mtrx_vector *v,int x, double r){
     for (int y=0;y<Y(v,x);y++){
         for (int z=0;z<Z(v,x);z++){
             DATA(v,get_index(v,x,y,z))*=r;
+         }
+    }
+}
+
+void multiply_mtrx_mtrx(mtrx_vector *v, mtrx_vector *vp,int x,int xp){
+    if (Y(v,x)!=Y(vp,xp)||Z(v,x)!=Z(vp,xp)){
+        ERROR("Matrix sizes incompatible for addition!\n");
+        return;
+    }
+    for (int i=0;i<Y(v,x);i++){
+        for (int j=0;j<Z(v,x);j++){
+            DATA(v,get_index(vp,xp,i,j))*=DATA(v,get_index(v,x,i,j));
          }
     }
 }
@@ -226,7 +312,6 @@ double max_mtrx(mtrx_vector *v, int x){
 double max_vector(mtrx_vector *v){
     double max_val = DATA(v,0);
     for (int i = 1; i < total_size(v); i++) {
-        double local_max=maxt_mtrx(
         if (DATA(v,i) > max_val) {
             max_val = DATA(v,i);
         }
@@ -252,7 +337,14 @@ void affect_values(mtrx_vector *vp,mtrx_vector *v,int xp,int x){
     }
 }
 
-
+void affect_values_m_v(mtrx *vp,mtrx_vector *v,int x){ 
+    int i,j;
+    for (i=0;i<Y(v,x);i++){
+        for (j=0;j<Z(v,x);j++){
+        DATA(v,get_index(v,x,i,j))=DATA(vp,i*vp->y+j);
+        }
+    }
+}
 //transposes mtrx
 void transpose(mtrx_vector *v, int x){
     size_t new_len[]={Z(v,x)};
@@ -262,7 +354,7 @@ void transpose(mtrx_vector *v, int x){
     size_t buffer=Y(v,x);
     Y(v,x)=Z(v,x);
     Z(v,x)=buffer;
-    affect_values(vp,0,v,x);
+    affect_values(vp,v,0,x);
     free_vector(vp);
 }
 //get transposes mtrx
