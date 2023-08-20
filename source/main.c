@@ -13,7 +13,7 @@
 #define DP_IN 4
 #define DP_OUT 2
 #define LR 0.01
-#define EPOCHS 200
+#define EPOCHS 10
 #define SIZE_BATCH 2
 #define TRAIN true
 #define TEST false
@@ -86,6 +86,7 @@ int main()
 	//normalize(test_input,255);
 	free_data_mtrx(test_data,SIZE_TEST);
 	train(expected ,input,test_expected, test_input, NN, SIZE_BATCH, LR, MULTICLASS, EPOCHS);
+	/*
 	double costs[SIZE_TEST];
 	double* expect; 
 	for (int i=0;i<X(test_expected);i++){
@@ -101,7 +102,7 @@ int main()
 		printf("]\ncosts: ");
 		printf("%f\n",costs[i]);
 		free(expect);
-	}
+	}*/
 	free_mtrx(input);
 	free_mtrx(expected);
 	free_mtrx(test_input);

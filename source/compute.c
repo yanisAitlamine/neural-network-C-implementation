@@ -20,14 +20,19 @@ void softmax(nNetwork* NN, int layer) {
 
 // Derivative of softmax
 void softmaxPrime(nNetwork *NN,int layer) {
+    printf("\nSoftmax prime computation\n");
+    print_mtrx_v(ZNP(NN),layer);
     for (int y=0;y<Y(ZNP(NN),layer);y++){
         for (int i = 0; i < DPTH(NN)[layer]; i++) {
             if (i==y) {
                 DATA(ZNP(NN),get_index(ZNP(NN),layer,y,0)) += DATA(ACT(NN),get_index(ACT(NN),layer,i,0)) * (1.0 - DATA(ACT(NN),get_index(ACT(NN),layer,i,0)));
+                printf("%f\n",DATA(ACT(NN),get_index(ACT(NN),layer,i,0)) * (1.0 - DATA(ACT(NN),get_index(ACT(NN),layer,i,0))));
             }else{
                 DATA(ZNP(NN),get_index(ZNP(NN),layer,y,0)) += DATA(ACT(NN),get_index(ACT(NN),layer,i,0)) * (- DATA(ACT(NN),get_index(ACT(NN),layer,y,0)));
+                printf("%f\n",DATA(ACT(NN),get_index(ACT(NN),layer,i,0)) * (- DATA(ACT(NN),get_index(ACT(NN),layer,y,0))));
             }
         }
+        printf("%d\t%f\n",get_index(ZNP(NN),layer,y,0),DATA(ZNP(NN),get_index(ZNP(NN),layer,y,0)));
     }
 }
 
@@ -134,11 +139,19 @@ double multnode_cost(double *expected, mtrx_vector *v, int function){
     return ERR_RETURN;
 }
 
+#define DEBUGGRD true
+
 void compute_grd(double *expected, nNetwork *NN, int function){
     int i,x,y;
     int len=Y(ERR(NN),X(ERR(NN))-1),start=total_size(ERR(NN))-len;
     derivActivation(NN,LEN(NN)-1);
+#if DEBUGGRD
+    printf("\nExpected:\n");
+#endif
     for (i=0;i<len;i++){
+#if DEBUGGRD
+    printf("%.1f\t",expected[i]);
+#endif
         switch (function){
             case MULTICLASS:
                 DATA(ERR(NN),i+start)=expected[i]-DATA(ACT(NN),i+start);
@@ -154,6 +167,11 @@ void compute_grd(double *expected, nNetwork *NN, int function){
             break;
         }
     }
+#if DEBUGGRD
+    printf("\ngrd computation:\n");
+    print_mtrx_v(ZNP(NN),X(ZNP(NN))-1);
+    print_mtrx_v(ERR(NN),X(ERR(NN))-1);
+#endif
     affect_values_vx_vxp(ERR(NN),BGRD(NN),X(ERR(NN))-1,X(BGRD(NN))-1);
     mtrx_vector *buff,*buff2;
     for (i=LEN(NN)-2;i>-1;i--){ 
