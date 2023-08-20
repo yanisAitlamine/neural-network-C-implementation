@@ -3,19 +3,18 @@
 #include <math.h>
 #include "compute.h"
 #include "utils.h"
-#define DEBUGCPT !false
+#define DEBUGCPT false
 
 // Softmax activation function
 void softmax(nNetwork* NN, int layer) {
     double max_val = max_mtrx(ZN(NN),layer);
-
     double sum_exp = 0.0;
     add_mtrx(ACT(NN),layer,-max_val); 
+    exp_mtrx(ACT(NN),layer);
     for (int i = 0; i < DPTH(NN)[layer]; i++) {
         sum_exp +=  DATA(ACT(NN),get_index(ACT(NN),layer,i,0));
     }
 
-    exp_mtrx(ACT(NN),layer);
     divide_mtrx(ACT(NN),layer,sum_exp);
 }
 
@@ -67,25 +66,34 @@ void derivActivation(nNetwork *NN,int layer){
 void predict(mtrx *input,int x, nNetwork *NN){
     int i;
 #if DEBUGCPT
-    printf("inputs\n");
+    printf("inputs");
     print_list_m(input,x);
 #endif
     affect_values_mx_vxp(input,ACT(NN),x,0);
 #if DEBUGCPT
-    printf("input copied to first layer\n");
+    printf("\ninput copied to first layer\n");
     fflush(stdout);
 #endif
-    mtrx_vector* buff;
+    mtrx_vector* buff,*buff2;
     for (i=0;i<LEN(NN)-1;i++){
-        buff=dot(W(NN),ACT(NN),i,i);
-        affect_values_vx_vxp(buff,ZN(NN),0,i+1);
+        buff=get_transpose(ACT(NN),i);
+        buff2=dot(buff,W(NN),0,i);
+        transpose(buff2,0);
+        affect_values_vx_vxp(buff2,ZN(NN),0,i+1);
         add_mtrx_mtrx(B(NN),ZN(NN),i,i+1);
         activation(NN,i+1);
 #if DEBUGCPT
+        printf("Activation rank %d\n",i+1);
+        print_mtrx_v(W(NN),i);
+        print_mtrx_v(B(NN),i);
+        print_vector(buff2);
+        print_mtrx_v(ZN(NN),i+1);
         print_mtrx_v(ACT(NN),i+1);
+        fflush(stdout);
 #endif
+        free_vector(buff);
+        free_vector(buff2);
     }
-    free_vector(buff);
 }
 
 double sum_cost(double *expected, double *output, int x, int len, int function){
@@ -251,7 +259,10 @@ void train(mtrx *train_expected, mtrx *train_input,mtrx *test_expected, mtrx *te
             }
         }
         for (int y=0;y<=10;y++) {
-            if (y*(epochs/10)==i) {
+            if (y*(epochs/10)==i&&epochs>10) {
+                current_cost=test(NN,test_input,test_expected,function);
+               printf(">epochs %d cost: %f\n",i,current_cost);
+            }else if(epochs<10){
                 current_cost=test(NN,test_input,test_expected,function);
                printf(">epochs %d cost: %f\n",i,current_cost);
             }

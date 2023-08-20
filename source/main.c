@@ -9,59 +9,51 @@
 #include "errors.h"
 #include "in_outNN.h"
 #include "compute.h"
-#define SIZE_DATA 1 
-#define DP_IN 784
-#define DP_OUT 10
+#define SIZE_DATA 16 
+#define DP_IN 4
+#define DP_OUT 2
 #define LR 0.01
-#define EPOCHS 1
-#define SIZE_BATCH 1
+#define EPOCHS 200
+#define SIZE_BATCH 2
 #define TRAIN true
 #define TEST false
-#define SIZE_TEST 1
+#define SIZE_TEST 16
 
 int main()
 {
 	srand(time(0));
-	size_t len[]={2,2,4};
-	size_t dpth[]={4,4,2};
-	mtrx_vector *v=create_vector(3,len,dpth);
-	fflush(stdout);
 	double*** train_data=init_data_matrix(SIZE_DATA,DP_IN,DP_OUT);	
 	if (train_data==NULL){
 		ERROR("train_data is null!\n");
 		return 1;
 	}
-	if (readMnistIMG(train_data,SIZE_DATA,TRAIN)){
-		ERROR("read train img failed!\n");
-		free_data_mtrx(train_data,SIZE_DATA);
-		return 1;
-	}
-	if (readMnistLabels(train_data,SIZE_DATA,TRAIN)){
-		ERROR("read train labels failed!\n");
-		free_data_mtrx(train_data,SIZE_DATA);
-		return 1;
+	for (int i=0;i<SIZE_DATA;i++){
+		for (int y=0;y<DP_IN;y++){
+			train_data[i][0][y]=(i>>y)&1;
+		}
+		train_data[i][1][0]=(double)(((int)train_data[i][0][0]^(int)train_data[i][0][1])&&((int)train_data[i][0][2]^(int)train_data[i][0][3])/*&&((int)train_data[i][0][4]^(int)train_data[i][0][5])*/);
+		train_data[i][1][1]=(double)(!(int)train_data[i][1][0]);
 	}
 	double*** test_data=init_data_matrix(SIZE_TEST,DP_IN,DP_OUT);	
+	//init the data for the specific problem of xor gate
+	for (int i=0;i<SIZE_TEST;i++){
+		for (int y=0;y<DP_IN;y++){
+			test_data[i][0][y]=(i>>y)&1;
+		}
+		test_data[i][1][0]=(double)(((int)test_data[i][0][0]^(int)test_data[i][0][1])&&((int)test_data[i][0][2]^(int)test_data[i][0][3])/*&&((int)test_data[i][0][4]^(int)test_data[i][0][5])*/);
+		test_data[i][1][1]=(double)(!(int)test_data[i][1][0]);
+	}
 	if (test_data==NULL){
 		ERROR("test_data is null!\n");
 		return 1;
 	}
-	if (readMnistIMG(test_data,SIZE_TEST,TEST)){
-		ERROR("read test img failed!\n");
-		free_data_mtrx(test_data,SIZE_TEST);
-		return 1;
-	}
-	if (readMnistLabels(test_data,SIZE_TEST,TEST)){
-		ERROR("read test labels failed!\n");
-		free_data_mtrx(test_data,SIZE_TEST);
-		return 1;
-	}
+	
 	char* file="NNtest.nn";
 	nNetwork* NN=NULL;
 	if (fopen(file,"r")==NULL){
-		size_t len=4;
-		size_t depths[]={DP_IN,128,64,DP_OUT};
-		size_t functions[]={RELU,RELU,RELU,SOFT};
+		size_t len=3;
+		size_t depths[]={DP_IN,4,DP_OUT};
+		size_t functions[]={RELU,RELU,SOFT};
 		NN = createNN( len, depths,functions);
 		if (NN==NULL||NN->failFlag){
 			ERROR("NN is NULL!\n");
@@ -85,14 +77,13 @@ int main()
 	mtrx* expected=create_mtrx(SIZE_DATA,DP_OUT);
 	shuffle(train_data,SIZE_DATA,DP_IN,DP_OUT,3);	
 	splitData(SIZE_DATA,DP_IN,DP_OUT,train_data,input,expected);
-	normalize(input,255);
+	//normalize(input,255);
 	printf ("data splitted\n");
 	free_data_mtrx(train_data,SIZE_DATA);
 	mtrx* test_input=create_mtrx(SIZE_TEST,DP_IN);
 	mtrx* test_expected=create_mtrx(SIZE_TEST,DP_OUT);
-
 	splitData(SIZE_TEST,DP_IN,DP_OUT,test_data,test_input,test_expected);
-	normalize(test_input,255);
+	//normalize(test_input,255);
 	free_data_mtrx(test_data,SIZE_TEST);
 	train(expected ,input,test_expected, test_input, NN, SIZE_BATCH, LR, MULTICLASS, EPOCHS);
 	double costs[SIZE_TEST];
@@ -101,7 +92,7 @@ int main()
 		predict (test_input,i, NN);
 		expect=get_list_from_m(test_expected,i);
 		costs[i]=multnode_cost(expect,ACT(NN),MULTICLASS);
-		printf ("Testing\noutput:");
+		printf ("\ntesting\n\noutput:");
 		print_mtrx_v(ACT(NN),X(ACT(NN))-1);
 		printf ("\nExpected [");
 		for (int y=0;y<DPTH(NN)[LEN(NN)-1];y++){

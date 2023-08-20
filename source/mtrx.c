@@ -167,7 +167,7 @@ void print_mtrx_m(mtrx *v){
 void print_list_m(mtrx *v,int x){
     printf("\n");
     for (int j=0;j<v->y;j++){
-        printf("%f ",DATA(v,x*v->y+j));
+        printf("mtrx[%ld]:%f ",x*v->y+j,DATA(v,x*v->y+j));
     }
     printf("\n");
 }
@@ -225,7 +225,7 @@ void add_mtrx_mtrx(mtrx_vector *v, mtrx_vector *vp,int x,int xp){
     }
     for (int i=0;i<Y(v,x);i++){
         for (int j=0;j<Z(v,x);j++){
-            DATA(v,get_index(vp,xp,i,j))+=DATA(v,get_index(v,x,i,j));
+            DATA(vp,get_index(vp,xp,i,j))+=DATA(v,get_index(v,x,i,j));
          }
     }
 }
@@ -391,14 +391,14 @@ mtrx_vector* get_transpose(mtrx_vector *v, int x){
 //does dot operation between 2 matrixes
 mtrx_vector* dot(mtrx_vector *v, mtrx_vector *vp,int x,int xp){
     double current_result=0;
-    size_t new_len[]={Z(v,x)};
+    size_t new_len[]={Y(v,x)};
     size_t new_dpth[]={Z(vp,xp)}; 
     mtrx_vector *vr=create_vector(1,new_len,new_dpth);
     init_vector(vr);
     for (int y=0;y<Y(v,x);y++){
         for (int z=0;z<Z(v,x);z++){
             for (int i=0;i<Z(vp,xp);i++){
-                DATA(vr,get_index(vr,0,z,i))+=DATA(v,get_index(v,x,y,z))*DATA(vp,get_index(vp,xp,z,i));
+                DATA(vr,get_index(vr,0,y,i))+=DATA(v,get_index(v,x,y,z))*DATA(vp,get_index(vp,xp,z,i));
              }
         }
     }
