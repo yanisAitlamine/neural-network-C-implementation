@@ -48,6 +48,8 @@ void updateNN(nNetwork* NN, double learning_rate);
 void printNN(nNetwork* NN);
 void printGrd(nNetwork* NN);
 void printACT(nNetwork* NN);
-void printERROR(nNetwork* NN);
+void printZN(nNetwork* NN);
+void printZNP(nNetwork* NN);
+void printERR(nNetwork* NN);
 void freeNN (nNetwork* NN);
 #endif

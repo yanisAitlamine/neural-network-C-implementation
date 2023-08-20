@@ -28,9 +28,6 @@ mtrx_vector* create_vector(size_t len, size_t* y, size_t* z){
             Y(v,i)=y[i];
             Z(v,i)=z[i];
             size+=y[i]*z[i];
-#if DEBUGINIT
-            printf("size %ld,%ld,*%ld\n",size,y[i],z[i]);
-#endif
         }else{
             ERROR("sizes incorrect");
             free(v->y);
@@ -42,7 +39,7 @@ mtrx_vector* create_vector(size_t len, size_t* y, size_t* z){
 #if DEBUGINIT
             printf("size %ld\n",size);
 #endif
-    v->data=malloc(size*sizeof(double*));
+    v->data=malloc(size*sizeof(double));
     if (check_malloc(v->data,"Mtrx malloc failed!\n")){
         free_vector(v);
         return NULL;
@@ -52,13 +49,14 @@ mtrx_vector* create_vector(size_t len, size_t* y, size_t* z){
 
 mtrx* create_mtrx(size_t len, size_t depth){
 #if DEBUGINIT
-    printf("\nCreating vector!\n");
+    printf("\nCreating mtrx!\n");
+    printf ("v %ld*%ld=%ld\n",len,depth,len*depth);
     fflush(stdout);
 #endif
-    mtrx *v=malloc(sizeof(mtrx_vector));
-    X(v)=len;
-    v->y=depth;
-    v->data=malloc(X(v)*(v->y)*sizeof(double*));
+    mtrx *v=malloc(sizeof(mtrx));
+    (*v).x=len;
+    (*v).y=depth;
+    v->data=malloc(X(v)*(v->y)*sizeof(double));
     if (check_malloc(v->data,"Mtrx malloc failed!\n")){
         free_mtrx(v);
         return NULL;
@@ -127,7 +125,7 @@ void write_list_in_vector(double* list,mtrx_vector *v, int x,size_t size_list){
 
 void write_list(double* list,mtrx *v, int x,size_t size_list){
     for (int i=0;i<size_list;i++){
-        DATA(v,x*v->y+i)=list[i];
+        DATA(v,(x*v->y)+i)=list[i];
     }
 }
 
@@ -143,12 +141,12 @@ void splitData(int num_obj,size_t len_in, size_t len_out,double ***data, mtrx* i
 void print_vector(mtrx_vector *v){
     for (int i=0;i<X(v);i++){
         printf("\n");
-        print_mtrx(v,i);
+        print_mtrx_v(v,i);
     }
     printf("\n");
 }
 //print the matrix at position [x]
-void print_mtrx(mtrx_vector *v,int x){
+void print_mtrx_v(mtrx_vector *v,int x){
     for (int i=0;i<Z(v,x);i++){
         for (int j=0;j<Y(v,x);j++){
             printf("%f ",DATA(v,get_index(v,x,j,i)));
@@ -156,7 +154,23 @@ void print_mtrx(mtrx_vector *v,int x){
          printf("\n");
     }
 }
-
+//print the matrix 
+void print_mtrx_m(mtrx *v){
+    for (int i=0;i<X(v);i++){
+        for (int j=0;j<v->y;j++){
+            printf("%f ",DATA(v,i*v->y+j));
+         }
+         printf("\n");
+    }
+}
+//print the list at x
+void print_list_m(mtrx *v,int x){
+    printf("\n");
+    for (int j=0;j<v->y;j++){
+        printf("%f ",DATA(v,x*v->y+j));
+    }
+    printf("\n");
+}
 void init_vector(mtrx_vector *v){
     for (int i=0;i<X(v);i++){
         init_mtrx(v,i);
@@ -328,7 +342,7 @@ void transpose_values(mtrx_vector *v,mtrx_vector *vp,int x){
     }
 }
 
-void affect_values(mtrx_vector *vp,mtrx_vector *v,int xp,int x){ 
+void affect_values_vx_vxp(mtrx_vector *vp,mtrx_vector *v,int xp,int x){ 
     int i,j;
     for (i=0;i<Y(v,x);i++){
         for (j=0;j<Z(v,x);j++){
@@ -337,7 +351,7 @@ void affect_values(mtrx_vector *vp,mtrx_vector *v,int xp,int x){
     }
 }
 
-void affect_values_m_v(mtrx *vp,mtrx_vector *v,int x){ 
+void affect_values_m_vx(mtrx *vp,mtrx_vector *v,int x){ 
     int i,j;
     for (i=0;i<Y(v,x);i++){
         for (j=0;j<Z(v,x);j++){
@@ -345,6 +359,14 @@ void affect_values_m_v(mtrx *vp,mtrx_vector *v,int x){
         }
     }
 }
+
+void affect_values_mx_vxp(mtrx *v,mtrx_vector *vp,int x,int xp){ 
+    int j;
+    for (j=0;j<Z(vp,xp);j++){
+        DATA(vp,get_index(vp,xp,0,0)+j)=DATA(v,x*v->y+j);
+    }
+}
+
 //transposes mtrx
 void transpose(mtrx_vector *v, int x){
     size_t new_len[]={Z(v,x)};
@@ -354,7 +376,7 @@ void transpose(mtrx_vector *v, int x){
     size_t buffer=Y(v,x);
     Y(v,x)=Z(v,x);
     Z(v,x)=buffer;
-    affect_values(vp,v,0,x);
+    affect_values_vx_vxp(vp,v,0,x);
     free_vector(vp);
 }
 //get transposes mtrx
@@ -369,14 +391,14 @@ mtrx_vector* get_transpose(mtrx_vector *v, int x){
 //does dot operation between 2 matrixes
 mtrx_vector* dot(mtrx_vector *v, mtrx_vector *vp,int x,int xp){
     double current_result=0;
-    size_t new_len[]={Y(v,x)};
+    size_t new_len[]={Z(v,x)};
     size_t new_dpth[]={Z(vp,xp)}; 
     mtrx_vector *vr=create_vector(1,new_len,new_dpth);
     init_vector(vr);
     for (int y=0;y<Y(v,x);y++){
         for (int z=0;z<Z(v,x);z++){
             for (int i=0;i<Z(vp,xp);i++){
-                DATA(vr,get_index(vr,0,y,i))+=DATA(v,get_index(v,x,y,z))*DATA(vp,get_index(vp,xp,y,i));
+                DATA(vr,get_index(vr,0,z,i))+=DATA(v,get_index(v,x,y,z))*DATA(vp,get_index(vp,xp,z,i));
              }
         }
     }

@@ -3,7 +3,7 @@
 #include <math.h>
 #include "compute.h"
 #include "utils.h"
-#define DEBUGCPT false
+#define DEBUGCPT !false
 
 // Softmax activation function
 void softmax(nNetwork* NN, int layer) {
@@ -33,7 +33,7 @@ void softmaxPrime(nNetwork *NN,int layer) {
 }
 
 void activation(nNetwork *NN, int layer){
-    affect_values(ZN(NN),ACT(NN),layer,layer);
+    affect_values_vx_vxp(ZN(NN),ACT(NN),layer,layer);
     switch (FUNC(NN)[layer]){
         case SIG:
             sigmoid_mtrx(ACT(NN),layer);
@@ -50,11 +50,11 @@ void activation(nNetwork *NN, int layer){
 void derivActivation(nNetwork *NN,int layer){
     switch (FUNC(NN)[layer]){
         case SIG:
-            affect_values(ACT(NN),ZNP(NN),layer,layer);
+            affect_values_vx_vxp(ACT(NN),ZNP(NN),layer,layer);
             sigmoidP_mtrx(ZNP(NN),layer);
         break;
         case RELU:
-            affect_values(ZN(NN),ZNP(NN),layer,layer);
+            affect_values_vx_vxp(ZN(NN),ZNP(NN),layer,layer);
             ReluP_mtrx(ZNP(NN),layer);
         break;
         case SOFT:
@@ -64,15 +64,26 @@ void derivActivation(nNetwork *NN,int layer){
     }
 }
 
-void compute(mtrx *input, int x, nNetwork *NN){
+void predict(mtrx *input,int x, nNetwork *NN){
     int i;
-    affect_values_m_v(input,ACT(NN),0);
+#if DEBUGCPT
+    printf("inputs\n");
+    print_list_m(input,x);
+#endif
+    affect_values_mx_vxp(input,ACT(NN),x,0);
+#if DEBUGCPT
+    printf("input copied to first layer\n");
+    fflush(stdout);
+#endif
     mtrx_vector* buff;
     for (i=0;i<LEN(NN)-1;i++){
         buff=dot(W(NN),ACT(NN),i,i);
-        affect_values(buff,ZN(NN),0,i+1);
+        affect_values_vx_vxp(buff,ZN(NN),0,i+1);
         add_mtrx_mtrx(B(NN),ZN(NN),i,i+1);
         activation(NN,i+1);
+#if DEBUGCPT
+        print_mtrx_v(ACT(NN),i+1);
+#endif
     }
     free_vector(buff);
 }
@@ -135,18 +146,18 @@ void compute_grd(double *expected, nNetwork *NN, int function){
             break;
         }
     }
-    affect_values(ERR(NN),BGRD(NN),X(ERR(NN))-1,X(BGRD(NN))-1);
+    affect_values_vx_vxp(ERR(NN),BGRD(NN),X(ERR(NN))-1,X(BGRD(NN))-1);
     mtrx_vector *buff,*buff2;
     for (i=LEN(NN)-2;i>-1;i--){ 
         derivActivation(NN,i);
         buff=sum_W_Zn_Deriv(i,NN);
-        affect_values(buff,ERR(NN),0,i);
+        affect_values_vx_vxp(buff,ERR(NN),0,i);
         free_vector(buff);
         multiply_mtrx_mtrx(ZNP(NN),ERR(NN),i,i);
-        if (i>0)affect_values(ERR(NN),BGRD(NN),i,i-1);
+        if (i>0)affect_values_vx_vxp(ERR(NN),BGRD(NN),i,i-1);
         buff=get_transpose(ERR(NN), i+1);
         buff2=dot(buff, ACT(NN),0,i);
-        affect_values(buff2,W(NN),0,i);
+        affect_values_vx_vxp(buff2,W(NN),0,i);
         free_vector(buff);
         free_vector(buff2);
     }
@@ -164,7 +175,7 @@ double test(nNetwork *NN, mtrx* test_input,mtrx *test_expected,size_t function){
     double costs[X(test_expected)];
     double* expected; 
     for (int i=0;i<X(test_expected);i++){
-        compute (test_input,i, NN);
+        predict (test_input,i, NN);
         expected=get_list_from_m(test_expected,i);
         costs[i]=multnode_cost(expected,ACT(NN),function);
 #define DEBUGTEST false
@@ -183,21 +194,27 @@ double test(nNetwork *NN, mtrx* test_input,mtrx *test_expected,size_t function){
     return mean_double(costs,X(test_expected));
 }
 
+#define DEBUGB !true
+
 void batch(mtrx *train_expected, mtrx *train_input, int rank, nNetwork* NN, int size_batch, double learning_rate, int function){
 	double* expected;
 	for  (int i=0;i<size_batch;i++){
-            compute (train_input,rank+i, NN);
+#if DEBUGB
+    printf("computing for training\n");
+    fflush(stdout);
+#endif
+            predict (train_input,rank+i, NN);
             expected=get_list_from_m(train_expected,rank+i);
             compute_grd(expected,NN,function);
-#if DEBUGCPT
+#if DEBUGB
             if(rank<5*size_batch&&i==0){
                 printf ("\n\nExpected [");
                 for (int y=0;y<DPTH(NN)[LEN(NN)-1];y++){
-                    printf("%.1f ",expected[i+rank][y]);
+                    printf("%.1f ",expected[y]);
                 }
                 printf("]\n");
                 printACT(NN);
-                printERROR(NN);
+                printERR(NN);
                 printGrd(NN);
             }
 #endif
@@ -209,11 +226,20 @@ void batch(mtrx *train_expected, mtrx *train_input, int rank, nNetwork* NN, int 
 
 void train(mtrx *train_expected, mtrx *train_input,mtrx *test_expected, mtrx *test_input, nNetwork* NN, int size_batch, double learning_rate, int function, int epochs){
    printf ("training for %d epochs over batch of size %d\n",epochs, size_batch);
+
     double current_cost;
     size_t size_data=X(train_input), size_test=X(test_input);
+#if DEBUGCPT
+    printf("\t%f\t%d\t%ld\t%ld\n",learning_rate,function,size_data,size_test);
+    fflush(stdout);
+#endif
     for (int i=0;i<epochs;i++){
         for (int x=0;x<size_data;x+=size_batch){
             if (x>size_data-size_batch){size_batch=size_data-x;}
+#if DEBUGCPT
+            printf ("batch nb %d\n",x/size_batch);
+            fflush(stdout);
+#endif
             batch(train_expected,train_input,x,NN,size_batch,learning_rate,function);
             for(int z=0;z<=10;z++){
                 for (int y=0;y<=10;y++) {

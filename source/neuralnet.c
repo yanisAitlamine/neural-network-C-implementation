@@ -129,9 +129,21 @@ void printGrd(nNetwork* NN){
 void printACT(nNetwork* NN){
     printf ("\nPrinting neural net activations of size %ld!\n",NN->len);
     print_vector(ACT(NN));
-    print_vector(ZN(NN));
-    print_vector(ZNP(NN));
+}
+
+void printERR(nNetwork* NN){
+    printf ("\nPrinting neural net activations of size %ld!\n",NN->len);
     print_vector(ERR(NN));
+}
+
+void printZN(nNetwork* NN){
+    printf ("\nPrinting neural net activations of size %ld!\n",NN->len);
+    print_vector(ZN(NN));
+}
+
+void printZNP(nNetwork* NN){
+    printf ("\nPrinting neural net activations of size %ld!\n",NN->len);
+    print_vector(ZNP(NN));
 }
 
 #define DEBUGFREE false

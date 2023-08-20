@@ -9,7 +9,7 @@ void softmax(nNetwork* NN, int layer);
 void softmaxPrime(nNetwork *NN,int layer);
 void activation(nNetwork *NN, int layer);
 void derivActivation(nNetwork *NN,int layer);
-void compute(mtrx *input, int x, nNetwork *NN);
+void predict(mtrx *input, int x, nNetwork *NN);
 double sum_cost(double *expected, double *output, int x, int len, int function);
 double MSE_cost(double* expected, double* output, int x, int len);
 double MAE_cost(double* expected, double* output, int x, int len);

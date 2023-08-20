@@ -9,15 +9,15 @@
 #include "errors.h"
 #include "in_outNN.h"
 #include "compute.h"
-#define SIZE_DATA 10 
+#define SIZE_DATA 1 
 #define DP_IN 784
 #define DP_OUT 10
 #define LR 0.01
-#define EPOCHS 2
-#define SIZE_BATCH 2
+#define EPOCHS 1
+#define SIZE_BATCH 1
 #define TRAIN true
 #define TEST false
-#define SIZE_TEST 10
+#define SIZE_TEST 1
 
 int main()
 {
@@ -25,7 +25,6 @@ int main()
 	size_t len[]={2,2,4};
 	size_t dpth[]={4,4,2};
 	mtrx_vector *v=create_vector(3,len,dpth);
-	printf("created vector\n!");
 	fflush(stdout);
 	double*** train_data=init_data_matrix(SIZE_DATA,DP_IN,DP_OUT);	
 	if (train_data==NULL){
@@ -71,7 +70,7 @@ int main()
 		}
 		fillNN(NN);
 		printf("filled correctly!\n");
-		printNN(NN);
+		//printNN(NN);
 		if (!writeNN (file, NN)){ERROR("failed to write!\n");}
 		freeNN(NN);
 	}
@@ -81,10 +80,9 @@ int main()
 		freeNN(NN);
 		return 1;
 	}
-	printNN(NN);
+	//printNN(NN);
 	mtrx* input=create_mtrx(SIZE_DATA,DP_IN);
 	mtrx* expected=create_mtrx(SIZE_DATA,DP_OUT);
-
 	shuffle(train_data,SIZE_DATA,DP_IN,DP_OUT,3);	
 	splitData(SIZE_DATA,DP_IN,DP_OUT,train_data,input,expected);
 	normalize(input,255);
@@ -100,11 +98,11 @@ int main()
 	double costs[SIZE_TEST];
 	double* expect; 
 	for (int i=0;i<X(test_expected);i++){
-		compute (test_input,i, NN);
+		predict (test_input,i, NN);
 		expect=get_list_from_m(test_expected,i);
 		costs[i]=multnode_cost(expect,ACT(NN),MULTICLASS);
 		printf ("Testing\noutput:");
-		print_mtrx(ACT(NN),X(ACT(NN))-1);
+		print_mtrx_v(ACT(NN),X(ACT(NN))-1);
 		printf ("\nExpected [");
 		for (int y=0;y<DPTH(NN)[LEN(NN)-1];y++){
 			printf("%.1f ",expect[y]);

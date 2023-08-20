@@ -24,7 +24,7 @@ typedef struct{
 //create vector
 mtrx_vector* create_vector(size_t len, size_t* y, size_t* z);
 //create vector
-mtrx* create_mtrx(size_t x, size_t y);
+mtrx* create_mtrx(size_t len, size_t depth);
 //free vector
 void free_vector(mtrx_vector *v);
 void free_mtrx(mtrx *v);
@@ -42,7 +42,9 @@ void splitData(int num_obj,size_t len_in, size_t len_out,double ***data, mtrx* i
 //print the whole vector
 void print_vector(mtrx_vector *v);
 //print the matrix at position [x]
-void print_mtrx(mtrx_vector *v,int x);
+void print_mtrx_v(mtrx_vector *v,int x);
+void print_mtrx_m(mtrx *v);
+void print_list_m(mtrx *v,int x);
 //init data to 0
 void init_vector(mtrx_vector *v);
 //init mtrx to rand
@@ -79,8 +81,9 @@ void ReluP_mtrx(mtrx_vector* v, int x);
 void transpose_values(mtrx_vector *v,mtrx_vector *vp,int x); 
 
 //affect values of one mtrx to another
-void affect_values(mtrx_vector *vp,mtrx_vector *v,int xp,int x); 
-void affect_values_m_v(mtrx *vp,mtrx_vector *v,int x);
+void affect_values_vx_vxp(mtrx_vector *vp,mtrx_vector *v,int xp,int x); 
+void affect_values_m_vx(mtrx *vp,mtrx_vector *v,int x);
+void affect_values_mx_vxp(mtrx *v,mtrx_vector *vp,int x,int xp); 
 //transposes mtrx
 void transpose(mtrx_vector *v, int x);
 mtrx_vector* get_transpose(mtrx_vector *v, int x);
