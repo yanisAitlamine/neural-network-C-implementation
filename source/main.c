@@ -9,12 +9,12 @@
 #include "errors.h"
 #include "in_outNN.h"
 #include "compute.h"
-#define SIZE_DATA 16 
+#define SIZE_DATA 28 
 #define DP_IN 4
 #define DP_OUT 2
 #define LR 0.01
-#define EPOCHS 10
-#define SIZE_BATCH 2
+#define EPOCHS 1000
+#define SIZE_BATCH 1
 #define TRAIN true
 #define TEST false
 #define SIZE_TEST 16
@@ -27,12 +27,22 @@ int main()
 		ERROR("train_data is null!\n");
 		return 1;
 	}
-	for (int i=0;i<SIZE_DATA;i++){
+	int positiv=0;
+	for (int i=0;i<16;i++){
 		for (int y=0;y<DP_IN;y++){
 			train_data[i][0][y]=(i>>y)&1;
 		}
 		train_data[i][1][0]=(double)(((int)train_data[i][0][0]^(int)train_data[i][0][1])&&((int)train_data[i][0][2]^(int)train_data[i][0][3])/*&&((int)train_data[i][0][4]^(int)train_data[i][0][5])*/);
 		train_data[i][1][1]=(double)(!(int)train_data[i][1][0]);
+		if (train_data[i][1][0]){
+			for (int z=0;z<3;z++){
+				for (int y=0;y<DP_IN;y++){
+					train_data[16+positiv][0][y]=train_data[i][0][y];
+				}
+				for (int x=0;x<DP_OUT;x++)train_data[16+positiv][1][x]=train_data[i][1][x];
+				positiv++;
+			}
+		}
 	}
 	double*** test_data=init_data_matrix(SIZE_TEST,DP_IN,DP_OUT);	
 	//init the data for the specific problem of xor gate
@@ -86,7 +96,7 @@ int main()
 	//normalize(test_input,255);
 	free_data_mtrx(test_data,SIZE_TEST);
 	train(expected ,input,test_expected, test_input, NN, SIZE_BATCH, LR, MULTICLASS, EPOCHS);
-	/*
+	
 	double costs[SIZE_TEST];
 	double* expect; 
 	for (int i=0;i<X(test_expected);i++){
@@ -102,7 +112,7 @@ int main()
 		printf("]\ncosts: ");
 		printf("%f\n",costs[i]);
 		free(expect);
-	}*/
+	}
 	free_mtrx(input);
 	free_mtrx(expected);
 	free_mtrx(test_input);

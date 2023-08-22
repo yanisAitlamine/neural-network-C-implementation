@@ -102,12 +102,25 @@ void initGRD(nNetwork* NN){
     init_vector(BGRD(NN));
 }
 
+#define DEBUGUPDATE !true
 //Update weights and bias with Grd and learing rate
 void updateNN(nNetwork* NN, double learning_rate){
+#if DEBUGUPDATE
+    print_vector(BGRD(NN));
+    print_vector(B(NN));
+    print_vector(WGRD(NN));
+    print_vector(W(NN));
+#endif
     multiply_vector(WGRD(NN),learning_rate);
     for (int x=0;x<LEN(NN)-1;x++)add_mtrx_mtrx(WGRD(NN),W(NN),x,x);
     multiply_vector(BGRD(NN),learning_rate);
     for (int x=0;x<LEN(NN)-1;x++)add_mtrx_mtrx(BGRD(NN),B(NN),x,x);
+#if DEBUGUPDATE
+    print_vector(BGRD(NN));
+    print_vector(B(NN));
+    print_vector(WGRD(NN));
+    print_vector(W(NN));
+#endif
 }
 
 
@@ -129,6 +142,7 @@ void printGrd(nNetwork* NN){
 void printACT(nNetwork* NN){
     printf ("\nPrinting neural net activations of size %ld!\n",NN->len);
     print_vector(ACT(NN));
+    print_vector(ERR(NN));
 }
 
 void printERR(nNetwork* NN){

@@ -20,19 +20,14 @@ void softmax(nNetwork* NN, int layer) {
 
 // Derivative of softmax
 void softmaxPrime(nNetwork *NN,int layer) {
-    printf("\nSoftmax prime computation\n");
-    print_mtrx_v(ZNP(NN),layer);
     for (int y=0;y<Y(ZNP(NN),layer);y++){
         for (int i = 0; i < DPTH(NN)[layer]; i++) {
             if (i==y) {
                 DATA(ZNP(NN),get_index(ZNP(NN),layer,y,0)) += DATA(ACT(NN),get_index(ACT(NN),layer,i,0)) * (1.0 - DATA(ACT(NN),get_index(ACT(NN),layer,i,0)));
-                printf("%f\n",DATA(ACT(NN),get_index(ACT(NN),layer,i,0)) * (1.0 - DATA(ACT(NN),get_index(ACT(NN),layer,i,0))));
             }else{
                 DATA(ZNP(NN),get_index(ZNP(NN),layer,y,0)) += DATA(ACT(NN),get_index(ACT(NN),layer,i,0)) * (- DATA(ACT(NN),get_index(ACT(NN),layer,y,0)));
-                printf("%f\n",DATA(ACT(NN),get_index(ACT(NN),layer,i,0)) * (- DATA(ACT(NN),get_index(ACT(NN),layer,y,0))));
             }
         }
-        printf("%d\t%f\n",get_index(ZNP(NN),layer,y,0),DATA(ZNP(NN),get_index(ZNP(NN),layer,y,0)));
     }
 }
 
@@ -89,6 +84,8 @@ void predict(mtrx *input,int x, nNetwork *NN){
         activation(NN,i+1);
 #if DEBUGCPT
         printf("Activation rank %d\n",i+1);
+        print_mtrx_v(ZN(NN),i);
+        print_mtrx_v(ACT(NN),i);
         print_mtrx_v(W(NN),i);
         print_mtrx_v(B(NN),i);
         print_vector(buff2);
@@ -139,7 +136,7 @@ double multnode_cost(double *expected, mtrx_vector *v, int function){
     return ERR_RETURN;
 }
 
-#define DEBUGGRD true
+#define DEBUGGRD !true
 
 void compute_grd(double *expected, nNetwork *NN, int function){
     int i,x,y;
@@ -167,12 +164,14 @@ void compute_grd(double *expected, nNetwork *NN, int function){
             break;
         }
     }
-#if DEBUGGRD
-    printf("\ngrd computation:\n");
-    print_mtrx_v(ZNP(NN),X(ZNP(NN))-1);
-    print_mtrx_v(ERR(NN),X(ERR(NN))-1);
-#endif
     affect_values_vx_vxp(ERR(NN),BGRD(NN),X(ERR(NN))-1,X(BGRD(NN))-1);
+#if DEBUGGRD
+    printf("\ngrd computation layer %ld:\n",X(ERR(NN))-1);
+    print_mtrx_v(ACT(NN),X(ACT(NN))-1);
+    print_mtrx_v(ERR(NN),X(ERR(NN))-1);
+    print_mtrx_v(BGRD(NN),X(BGRD(NN))-1);
+#endif
+
     mtrx_vector *buff,*buff2;
     for (i=LEN(NN)-2;i>-1;i--){ 
         derivActivation(NN,i);
@@ -182,18 +181,25 @@ void compute_grd(double *expected, nNetwork *NN, int function){
         multiply_mtrx_mtrx(ZNP(NN),ERR(NN),i,i);
         if (i>0)affect_values_vx_vxp(ERR(NN),BGRD(NN),i,i-1);
         buff=get_transpose(ERR(NN), i+1);
-        buff2=dot(buff, ACT(NN),0,i);
-        affect_values_vx_vxp(buff2,W(NN),0,i);
+        buff2=dot(ACT(NN), buff,i,0);
+        affect_values_vx_vxp(buff2,WGRD(NN),0,i);
+#if DEBUGGRD
+    printf("\ngrd computation layer %d:\n",i);
+    print_mtrx_v(ACT(NN),i);
+    print_mtrx_v(ZNP(NN),i);
+    print_mtrx_v(ERR(NN),i);
+    if (i>0)print_mtrx_v(BGRD(NN),i-1);
+    print_mtrx_v(WGRD(NN),i);
+#endif
+
         free_vector(buff);
         free_vector(buff2);
     }
 }
 
 mtrx_vector* sum_W_Zn_Deriv(int layer, nNetwork* NN){
-    mtrx_vector *buff,*result;
-    buff=get_transpose(ERR(NN),layer);
-    result =dot(buff, W(NN), 0, layer);
-    free_vector(buff);
+    mtrx_vector *result;
+    result =dot(W(NN), ERR(NN),layer, layer+1);
     return result;
 }
 

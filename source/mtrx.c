@@ -251,7 +251,7 @@ void multiply_mtrx_mtrx(mtrx_vector *v, mtrx_vector *vp,int x,int xp){
     }
     for (int i=0;i<Y(v,x);i++){
         for (int j=0;j<Z(v,x);j++){
-            DATA(v,get_index(vp,xp,i,j))*=DATA(v,get_index(v,x,i,j));
+            DATA(vp,get_index(vp,xp,i,j))*=DATA(v,get_index(v,x,i,j));
          }
     }
 }
@@ -362,7 +362,7 @@ void affect_values_m_vx(mtrx *vp,mtrx_vector *v,int x){
 
 void affect_values_mx_vxp(mtrx *v,mtrx_vector *vp,int x,int xp){ 
     int j;
-    for (j=0;j<Z(vp,xp);j++){
+    for (j=0;j<v->y;j++){
         DATA(vp,get_index(vp,xp,0,0)+j)=DATA(v,x*v->y+j);
     }
 }
@@ -388,6 +388,7 @@ mtrx_vector* get_transpose(mtrx_vector *v, int x){
     return vp;
 }
 
+#define DEBUGDOT !true
 //does dot operation between 2 matrixes
 mtrx_vector* dot(mtrx_vector *v, mtrx_vector *vp,int x,int xp){
     double current_result=0;
@@ -399,6 +400,9 @@ mtrx_vector* dot(mtrx_vector *v, mtrx_vector *vp,int x,int xp){
         for (int z=0;z<Z(v,x);z++){
             for (int i=0;i<Z(vp,xp);i++){
                 DATA(vr,get_index(vr,0,y,i))+=DATA(v,get_index(v,x,y,z))*DATA(vp,get_index(vp,xp,z,i));
+#if DEBUGDOT
+                printf("\ndot compute %d,%d+=%d,%d*%d,%d\n%f+=%f*%f\n",y,i,y,z,z,i,DATA(vr,get_index(vr,0,y,i)),DATA(v,get_index(v,x,y,z)),DATA(vp,get_index(vp,xp,z,i)));
+#endif 
              }
         }
     }
