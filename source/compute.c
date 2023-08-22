@@ -121,7 +121,6 @@ double multiclass_cost(double* expected, double* output, int x, int len){
 double multnode_cost(double *expected, mtrx_vector *v, int function){
     int len=Y(v,X(v)-1),x=total_size(v)-len;
 //outputs are the last len values in output->data
-
     switch (function){
         case MSE:
             return MSE_cost(expected,v->data,len,x);
@@ -210,6 +209,7 @@ double test(nNetwork *NN, mtrx* test_input,mtrx *test_expected,size_t function){
         predict (test_input,i, NN);
         expected=get_list_from_m(test_expected,i);
         costs[i]=multnode_cost(expected,ACT(NN),function);
+        if (isnan(costs[i]))print_vector(W(NN));
 #define DEBUGTEST false
 #if DEBUGTEST 
         printf ("Testing\noutput:");

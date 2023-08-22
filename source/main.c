@@ -9,15 +9,15 @@
 #include "errors.h"
 #include "in_outNN.h"
 #include "compute.h"
-#define SIZE_DATA 28 
-#define DP_IN 4
+#define SIZE_DATA 64 
+#define DP_IN 6
 #define DP_OUT 2
 #define LR 0.01
-#define EPOCHS 1000
-#define SIZE_BATCH 1
+#define EPOCHS 10000
+#define SIZE_BATCH 4
 #define TRAIN true
 #define TEST false
-#define SIZE_TEST 16
+#define SIZE_TEST 32
 
 int main()
 {
@@ -27,22 +27,12 @@ int main()
 		ERROR("train_data is null!\n");
 		return 1;
 	}
-	int positiv=0;
-	for (int i=0;i<16;i++){
+	for (int i=0;i<SIZE_DATA;i++){
 		for (int y=0;y<DP_IN;y++){
 			train_data[i][0][y]=(i>>y)&1;
 		}
-		train_data[i][1][0]=(double)(((int)train_data[i][0][0]^(int)train_data[i][0][1])&&((int)train_data[i][0][2]^(int)train_data[i][0][3])/*&&((int)train_data[i][0][4]^(int)train_data[i][0][5])*/);
+		train_data[i][1][0]=(double)(((int)train_data[i][0][0]^(int)train_data[i][0][1])&&((int)train_data[i][0][2]^(int)train_data[i][0][3])&&((int)train_data[i][0][4]^(int)train_data[i][0][5]));
 		train_data[i][1][1]=(double)(!(int)train_data[i][1][0]);
-		if (train_data[i][1][0]){
-			for (int z=0;z<3;z++){
-				for (int y=0;y<DP_IN;y++){
-					train_data[16+positiv][0][y]=train_data[i][0][y];
-				}
-				for (int x=0;x<DP_OUT;x++)train_data[16+positiv][1][x]=train_data[i][1][x];
-				positiv++;
-			}
-		}
 	}
 	double*** test_data=init_data_matrix(SIZE_TEST,DP_IN,DP_OUT);	
 	//init the data for the specific problem of xor gate
@@ -50,7 +40,7 @@ int main()
 		for (int y=0;y<DP_IN;y++){
 			test_data[i][0][y]=(i>>y)&1;
 		}
-		test_data[i][1][0]=(double)(((int)test_data[i][0][0]^(int)test_data[i][0][1])&&((int)test_data[i][0][2]^(int)test_data[i][0][3])/*&&((int)test_data[i][0][4]^(int)test_data[i][0][5])*/);
+		test_data[i][1][0]=(double)(((int)test_data[i][0][0]^(int)test_data[i][0][1])&&((int)test_data[i][0][2]^(int)test_data[i][0][3])&&((int)test_data[i][0][4]^(int)test_data[i][0][5]));
 		test_data[i][1][1]=(double)(!(int)test_data[i][1][0]);
 	}
 	if (test_data==NULL){
@@ -61,9 +51,9 @@ int main()
 	char* file="NNtest.nn";
 	nNetwork* NN=NULL;
 	if (fopen(file,"r")==NULL){
-		size_t len=3;
-		size_t depths[]={DP_IN,4,DP_OUT};
-		size_t functions[]={RELU,RELU,SOFT};
+		size_t len=4;
+		size_t depths[]={DP_IN,6,3,DP_OUT};
+		size_t functions[]={RELU,RELU,RELU,SOFT};
 		NN = createNN( len, depths,functions);
 		if (NN==NULL||NN->failFlag){
 			ERROR("NN is NULL!\n");
@@ -101,6 +91,8 @@ int main()
 	double* expect; 
 	for (int i=0;i<X(test_expected);i++){
 		predict (test_input,i, NN);
+		printf("inputs:\n");
+		print_mtrx_v(ACT(NN),0);
 		expect=get_list_from_m(test_expected,i);
 		costs[i]=multnode_cost(expect,ACT(NN),MULTICLASS);
 		printf ("\ntesting\n\noutput:");

@@ -106,6 +106,9 @@ void initGRD(nNetwork* NN){
 //Update weights and bias with Grd and learing rate
 void updateNN(nNetwork* NN, double learning_rate){
 #if DEBUGUPDATE
+    print_vector(ACT(NN));
+    print_vector(ERR(NN));
+    print_vector(ZNP(NN));
     print_vector(BGRD(NN));
     print_vector(B(NN));
     print_vector(WGRD(NN));
