@@ -59,3 +59,4 @@ sign.ps1
 .vscode/c_cpp_properties.json
 .gitignore
 .vscode/settings.json
+.vscode/launch.json
