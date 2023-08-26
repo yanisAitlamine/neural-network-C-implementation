@@ -9,15 +9,15 @@
 #include "errors.h"
 #include "in_outNN.h"
 #include "compute.h"
-#define SIZE_DATA 10000
+#define SIZE_DATA 60000
 #define DP_IN 28*28
 #define DP_OUT 10
 #define LR 0.0001
 #define EPOCHS 10
-#define SIZE_BATCH 100
+#define SIZE_BATCH 128
 #define TRAIN true
 #define TEST false
-#define SIZE_TEST 10
+#define SIZE_TEST 100
 
 int main()
 {
