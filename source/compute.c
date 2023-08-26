@@ -123,13 +123,13 @@ double multnode_cost(double *expected, mtrx_vector *v, int function){
 //outputs are the last len values in output->data
     switch (function){
         case MSE:
-            return MSE_cost(expected,v->data,len,x);
+            return MSE_cost(expected,v->data,x,len);
             break;
         case MAE:
-            return MAE_cost(expected,v->data,len,x);
+            return MAE_cost(expected,v->data,x,len);
             break;
         case MULTICLASS:
-            return multiclass_cost(expected,v->data,len,x);
+            return multiclass_cost(expected,v->data,x,len);
             break;
     }
     return ERR_RETURN;
