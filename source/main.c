@@ -9,15 +9,15 @@
 #include "errors.h"
 #include "in_outNN.h"
 #include "compute.h"
-#define SIZE_DATA 3000
+#define SIZE_DATA 10000
 #define DP_IN 28*28
 #define DP_OUT 10
-#define LR 0.01
-#define EPOCHS 30
-#define SIZE_BATCH 10
+#define LR 0.0001
+#define EPOCHS 10
+#define SIZE_BATCH 100
 #define TRAIN true
 #define TEST false
-#define SIZE_TEST 100
+#define SIZE_TEST 10
 
 int main()
 {
@@ -56,9 +56,9 @@ int main()
 	char* file="NNtest.nn";
 	nNetwork* NN=NULL;
 	if (fopen(file,"r")==NULL){
-		size_t len=4;
-		size_t depths[]={DP_IN,8,4,DP_OUT};
-		size_t functions[]={RELU,RELU,RELU,SOFT};
+		size_t len=3;
+		size_t depths[]={DP_IN,256,DP_OUT};
+		size_t functions[]={RELU,RELU,SOFT};
 		NN = createNN( len, depths,functions);
 		if (NN==NULL||NN->failFlag){
 			ERROR("NN is NULL!\n");
@@ -77,7 +77,7 @@ int main()
 		freeNN(NN);
 		return 1;
 	}
-	//printNN(NN);
+	printNN(NN);
 	mtrx* input=create_mtrx(SIZE_DATA,DP_IN);
 	mtrx* expected=create_mtrx(SIZE_DATA,DP_OUT);
 	shuffle(train_data,SIZE_DATA,DP_IN,DP_OUT,3);	
@@ -96,11 +96,11 @@ int main()
 	double* expect; 
 	for (int i=0;i<X(test_expected);i++){
 		predict (test_input,i, NN);
-		printf("\ninputs:\n");
-		print_mtrx_v(ACT(NN),0);
+		//printf("\ninputs:\n");
+		//print_mtrx_v(ACT(NN),0);
 		expect=get_list_from_m(test_expected,i);
 		costs[i]=multnode_cost(expect,ACT(NN),MULTICLASS);
-		printf ("testing\noutput:");
+		printf ("\ntesting\noutput:");
 		print_mtrx_v(ACT(NN),X(ACT(NN))-1);
 		printf ("Expected [");
 		for (int y=0;y<DPTH(NN)[LEN(NN)-1];y++){

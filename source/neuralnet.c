@@ -115,9 +115,9 @@ void updateNN(nNetwork* NN, double learning_rate){
     print_vector(W(NN));
 #endif
     multiply_vector(WGRD(NN),learning_rate);
-    for (int x=0;x<LEN(NN)-1;x++)add_mtrx_mtrx(WGRD(NN),W(NN),x,x);
+    for (int x=0;x<LEN(NN)-1;x++)add_mtrx_mtrx_v_v(WGRD(NN),W(NN),x,x);
     multiply_vector(BGRD(NN),learning_rate);
-    for (int x=0;x<LEN(NN)-1;x++)add_mtrx_mtrx(BGRD(NN),B(NN),x,x);
+    for (int x=0;x<LEN(NN)-1;x++)add_mtrx_mtrx_v_v(BGRD(NN),B(NN),x,x);
 #if DEBUGUPDATE
     print_vector(BGRD(NN));
     print_vector(B(NN));
@@ -145,21 +145,20 @@ void printGrd(nNetwork* NN){
 void printACT(nNetwork* NN){
     printf ("\nPrinting neural net activations of size %ld!\n",NN->len);
     print_vector(ACT(NN));
-    print_vector(ERR(NN));
 }
 
 void printERR(nNetwork* NN){
-    printf ("\nPrinting neural net activations of size %ld!\n",NN->len);
+    printf ("\nPrinting neural net ERROR of size %ld!\n",NN->len);
     print_vector(ERR(NN));
 }
 
 void printZN(nNetwork* NN){
-    printf ("\nPrinting neural net activations of size %ld!\n",NN->len);
+    printf ("\nPrinting neural net ZN of size %ld!\n",NN->len);
     print_vector(ZN(NN));
 }
 
 void printZNP(nNetwork* NN){
-    printf ("\nPrinting neural net activations of size %ld!\n",NN->len);
+    printf ("\nPrinting neural net ZNP of size %ld!\n",NN->len);
     print_vector(ZNP(NN));
 }
 

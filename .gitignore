@@ -60,3 +60,4 @@ sign.ps1
 .gitignore
 .vscode/settings.json
 .vscode/launch.json
+log

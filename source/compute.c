@@ -3,7 +3,7 @@
 #include <math.h>
 #include "compute.h"
 #include "utils.h"
-#define DEBUGCPT false
+
 
 // Softmax activation function
 void softmax(nNetwork* NN, int layer) {
@@ -76,11 +76,11 @@ void predict(mtrx *input,int x, nNetwork *NN){
 #endif
     mtrx_vector* buff,*buff2;
     for (i=0;i<LEN(NN)-1;i++){
-        buff=get_transpose(ACT(NN),i);
-        buff2=dot(buff,W(NN),0,i);
-        transpose(buff2,0);
+        buff=get_transpose(W(NN),i);
+        buff2=dot(buff,ACT(NN),0,i);
+        //transpose(buff2,0);
         affect_values_vx_vxp(buff2,ZN(NN),0,i+1);
-        add_mtrx_mtrx(B(NN),ZN(NN),i,i+1);
+        add_mtrx_mtrx_v_v(B(NN),ZN(NN),i,i+1);
         activation(NN,i+1);
 #if DEBUGCPT
         printf("Activation rank %d\n",i+1);
@@ -142,7 +142,7 @@ void compute_grd(double *expected, nNetwork *NN, int function){
     int len=Y(ERR(NN),X(ERR(NN))-1),start=total_size(ERR(NN))-len;
     derivActivation(NN,LEN(NN)-1);
 #if DEBUGGRD
-    printf("\nExpected:\n");
+    printf("\nGRD DEBUG\nExpected:\n");
 #endif
     for (i=0;i<len;i++){
 #if DEBUGGRD
@@ -163,7 +163,7 @@ void compute_grd(double *expected, nNetwork *NN, int function){
             break;
         }
     }
-    affect_values_vx_vxp(ERR(NN),BGRD(NN),X(ERR(NN))-1,X(BGRD(NN))-1);
+    add_mtrx_mtrx_v_v(ERR(NN),BGRD(NN),X(ERR(NN))-1,X(BGRD(NN))-1);
 #if DEBUGGRD
     printf("\ngrd computation layer %ld:\n",X(ERR(NN))-1);
     print_mtrx_v(ACT(NN),X(ACT(NN))-1);
@@ -178,10 +178,10 @@ void compute_grd(double *expected, nNetwork *NN, int function){
         affect_values_vx_vxp(buff,ERR(NN),0,i);
         free_vector(buff);
         multiply_mtrx_mtrx(ZNP(NN),ERR(NN),i,i);
-        if (i>0)affect_values_vx_vxp(ERR(NN),BGRD(NN),i,i-1);
+        if (i>0)add_mtrx_mtrx_v_v(ERR(NN),BGRD(NN),i,i-1);
         buff=get_transpose(ERR(NN), i+1);
         buff2=dot(ACT(NN), buff,i,0);
-        affect_values_vx_vxp(buff2,WGRD(NN),0,i);
+        add_mtrx_mtrx_v_v(buff2,WGRD(NN),0,i);
 #if DEBUGGRD
     printf("\ngrd computation layer %d:\n",i);
     print_mtrx_v(ACT(NN),i);
@@ -230,39 +230,43 @@ double test(nNetwork *NN, mtrx* test_input,mtrx *test_expected,size_t function){
 
 void batch(mtrx *train_expected, mtrx *train_input, int rank, nNetwork* NN, int size_batch, double learning_rate, int function){
 	double* expected;
+    init_vector(WGRD(NN));
+    init_vector(BGRD(NN));
 	for  (int i=0;i<size_batch;i++){
 #if DEBUGB
-    printf("computing for training\n");
+    printf("\n BATCH DEBUG\nimage %d computing for training\n",rank+i);
     fflush(stdout);
 #endif
             predict (train_input,rank+i, NN);
             expected=get_list_from_m(train_expected,rank+i);
             compute_grd(expected,NN,function);
 #if DEBUGB
-            if(rank<5*size_batch&&i==0){
-                printf ("\n\nExpected [");
-                for (int y=0;y<DPTH(NN)[LEN(NN)-1];y++){
-                    printf("%.1f ",expected[y]);
-                }
-                printf("]\n");
-                printACT(NN);
-                printERR(NN);
-                printGrd(NN);
+            printf ("\n\nBATCH DEBUG\nExpected [");
+            for (int y=0;y<DPTH(NN)[LEN(NN)-1];y++){
+                printf("%.1f ",expected[y]);
             }
+            printf("]\n");
+            printACT(NN);
+            printERR(NN);
 #endif
             free(expected);
         }
-	//multiply_grd(NN, pow(size_batch,-1));
+	    multiply_vector(WGRD(NN),pow(size_batch,-1));
+        multiply_vector(BGRD(NN),pow(size_batch,-1));
+#if DEBUGB
+        printGrd(NN);
+#endif
         updateNN(NN,learning_rate);
 }
 
+#define DEBUGCPT !true
 void train(mtrx *train_expected, mtrx *train_input,mtrx *test_expected, mtrx *test_input, nNetwork* NN, int size_batch, double learning_rate, int function, int epochs){
    printf ("training for %d epochs over batch of size %d\n",epochs, size_batch);
 
     double current_cost;
     size_t size_data=X(train_input), size_test=X(test_input);
 #if DEBUGCPT
-    printf("\t%f\t%d\t%ld\t%ld\n",learning_rate,function,size_data,size_test);
+    printf("\tlr: %f\tfunction: %d\tsize_data: %ld\tsize_test: %ld\n",learning_rate,function,size_data,size_test);
     fflush(stdout);
 #endif
     for (int i=0;i<epochs;i++){
@@ -282,14 +286,16 @@ void train(mtrx *train_expected, mtrx *train_input,mtrx *test_expected, mtrx *te
                 }
             }
         }
-        for (int y=0;y<=10;y++) {
-            if (y*(epochs/10)==i&&epochs>10) {
-                current_cost=test(NN,test_input,test_expected,function);
-               printf(">epochs %d cost: %f\n",i,current_cost);
-            }else if(epochs<10){
-                current_cost=test(NN,test_input,test_expected,function);
-               printf(">epochs %d cost: %f\n",i,current_cost);
+        if (epochs>10) {
+            for (int y=0;y<=10;y++) {
+                if (y*(epochs/10)){
+                    current_cost=test(NN,test_input,test_expected,function);
+                    printf(">epochs %d cost: %f\n",i,current_cost);
+                }
             }
+        }else {
+            current_cost=test(NN,test_input,test_expected,function);
+            printf(">epochs %d cost: %f\n",i,current_cost);
         }
     }
     printf(">Finished\n");

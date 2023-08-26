@@ -88,13 +88,11 @@ size_t total_size(mtrx_vector* v){
 }
 //get the absolute index of v[x][y][z]
 int get_index(mtrx_vector *v,int x,int y,int z){
-    int i,j,index=0;
+    int i,index=0;
     for (i=0;i<x;i++){
         index+=Y(v,i)*Z(v,i);
     }
-    for (j=0;j<y;j++){
-        index+=Z(v,i);
-    }
+    index+=y*Z(v,i);
     return index+z;
 }
 
@@ -218,7 +216,7 @@ void add_mtrx(mtrx_vector *v,int x,double r){
     }
 }
 //add matrix at position x to the one at xp if they have the same dimmension
-void add_mtrx_mtrx(mtrx_vector *v, mtrx_vector *vp,int x,int xp){
+void add_mtrx_mtrx_v_v(mtrx_vector *v, mtrx_vector *vp,int x,int xp){
     if (Y(v,x)!=Y(vp,xp)||Z(v,x)!=Z(vp,xp)){
         ERROR("Matrix sizes incompatible for addition!\n");
         return;
