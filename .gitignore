@@ -54,3 +54,9 @@ dkms.conf
 #matrix files
 *.nn
 ./source/main.c
+cetrif.ps1
+sign.ps1
+.vscode/c_cpp_properties.json
+.gitignore
+.vscode/settings.json
+.vscode/launch.json
