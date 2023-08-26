@@ -4,16 +4,17 @@
 #include <string.h>
 #include <time.h>
 #include <math.h>
+#include "utils.h"
 #include "neuralnet.h"
 #include "errors.h"
 #include "in_outNN.h"
 #include "compute.h"
-#define SIZE_DATA 60000 
-#define DP_IN 784
+#define SIZE_DATA 10000
+#define DP_IN 28*28
 #define DP_OUT 10
-#define LR 0.01
+#define LR 0.0001
 #define EPOCHS 10
-#define BATCH_SIZE 100
+#define SIZE_BATCH 100
 #define TRAIN true
 #define TEST false
 #define SIZE_TEST 10
@@ -51,73 +52,68 @@ int main()
 		free_data_mtrx(test_data,SIZE_TEST);
 		return 1;
 	}
+	
 	char* file="NNtest.nn";
-	nNetwork* nn=NULL;
 	nNetwork* NN=NULL;
-	FILE* fileptr=fopen(file,"r");
-	if (fileptr==NULL){
-		size_t len=4;
-		size_t depths[]={DP_IN,128,64,DP_OUT};
-		int functions[]={RELU,RELU,RELU,SOFT};
-		nn = createNN( len, depths,functions);
-		if (nn==NULL||nn->failFlag){
+	if (fopen(file,"r")==NULL){
+		size_t len=3;
+		size_t depths[]={DP_IN,256,DP_OUT};
+		size_t functions[]={RELU,RELU,SOFT};
+		NN = createNN( len, depths,functions);
+		if (NN==NULL||NN->failFlag){
 			ERROR("NN is NULL!\n");
-			freeNN(nn);
+			freeNN(NN);
 		return 1;
 		}
-		fillNN(nn);
-		if (!writeNN (file, nn)){ERROR("failed to write");}
-		freeNN(nn);
-		printf("Initiated and saved correctly\n");
-		fflush(stdout);
-	}else{
-		fclose(fileptr);
+		fillNN(NN);
+		printf("filled correctly!\n");
+		//printNN(NN);
+		if (!writeNN (file, NN)){ERROR("failed to write!\n");}
+		freeNN(NN);
 	}
 	NN = readNN(file);
-	initGRD(NN);
 	if (NN==NULL||NN->failFlag){
 		ERROR("NN 2 is NULL!\n");
 		freeNN(NN);
 		return 1;
 	}
 	printNN(NN);
-	double** input=(double**)malloc(SIZE_DATA*sizeof(double*));
-	double** expected=(double**)malloc(SIZE_DATA*sizeof(double*));
-
+	mtrx* input=create_mtrx(SIZE_DATA,DP_IN);
+	mtrx* expected=create_mtrx(SIZE_DATA,DP_OUT);
 	shuffle(train_data,SIZE_DATA,DP_IN,DP_OUT,3);	
-	splitData(SIZE_DATA,DP_IN,DP_OUT,train_data,&input,&expected);
-	normalize(input,SIZE_DATA,DP_IN,255);
+	splitData(SIZE_DATA,DP_IN,DP_OUT,train_data,input,expected);
+	normalize(input,255);
 	printf ("data splitted\n");
 	free_data_mtrx(train_data,SIZE_DATA);
-	double** test_input=(double**)malloc(SIZE_TEST*sizeof(double*));
-	double** test_expected=(double**)malloc(SIZE_TEST*sizeof(double*));
-
-	splitData(SIZE_TEST,DP_IN,DP_OUT,test_data,&test_input,&test_expected);
-	normalize(test_input,SIZE_TEST,DP_IN,255);
+	mtrx* test_input=create_mtrx(SIZE_TEST,DP_IN);
+	mtrx* test_expected=create_mtrx(SIZE_TEST,DP_OUT);
+	splitData(SIZE_TEST,DP_IN,DP_OUT,test_data,test_input,test_expected);
+	normalize(test_input,255);
 	free_data_mtrx(test_data,SIZE_TEST);
-	train(expected, input,test_expected,test_input, NN, SIZE_DATA, BATCH_SIZE, SIZE_TEST, LR, MULTICLASS,EPOCHS);
+	train(expected ,input,test_expected, test_input, NN, SIZE_BATCH, LR, MULTICLASS, EPOCHS);
+	
 	double costs[SIZE_TEST];
-	for (int i=0;i<SIZE_TEST;i++){
-		compute (test_input[i], NN);
-		costs[i]=multnode_cost(test_expected[i],NN->activations[NN->len-1],NN->depths[NN->len-1],MULTICLASS);
-		printf ("Testing\noutput[");
-		for (int y=0;y<NN->depths[NN->len-1];y++){
-		printf("%.1f",NN->activations[NN->len-1][y][AN]);
-			if (y<NN->depths[NN->len-1]-1){
-				printf (", ");
-			}
-		}
-		printf ("]\nExpected [");
+	double* expect; 
+	for (int i=0;i<X(test_expected);i++){
+		predict (test_input,i, NN);
+		//printf("\ninputs:\n");
+		//print_mtrx_v(ACT(NN),0);
+		expect=get_list_from_m(test_expected,i);
+		costs[i]=multnode_cost(expect,ACT(NN),MULTICLASS);
+		printf ("\ntesting\noutput:");
+		print_mtrx_v(ACT(NN),X(ACT(NN))-1);
+		printf ("Expected [");
 		for (int y=0;y<DPTH(NN)[LEN(NN)-1];y++){
-			printf("%.1f ",test_expected[i][y]);
+			printf("%.1f ",expect[y]);
 		}
 		printf("]\ncosts: ");
 		printf("%f\n",costs[i]);
+		free(expect);
 	}
-	free_mtrx(input, SIZE_DATA);
-	free_mtrx(expected, SIZE_DATA);
-	free_mtrx(test_input, SIZE_TEST);
-	free_mtrx(test_expected,SIZE_TEST);
+	free_mtrx(input);
+	free_mtrx(expected);
+	free_mtrx(test_input);
+	free_mtrx(test_expected);
 	if (!writeNN (file, NN)){ERROR("failed to write");}
 	freeNN(NN);
 	return 0;

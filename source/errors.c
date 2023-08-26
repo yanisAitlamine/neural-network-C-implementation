@@ -6,7 +6,8 @@
 // Return ERROR value if table is null
 bool check_malloc(void* data,char* message) {
     if(data==NULL){
-            return ERROR(message);
+        ERROR(message);
+        return true;
     }
     return false;
 }

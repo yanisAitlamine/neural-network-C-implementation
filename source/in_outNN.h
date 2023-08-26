@@ -1,5 +1,6 @@
 #ifndef READ_H_INCLUDED
 #define READ_H_INCLUDED
+#include <stdio.h>
 #include "neuralnet.h"
 
 int read(FILE *stream, char *chain, size_t len);

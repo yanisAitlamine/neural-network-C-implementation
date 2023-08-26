@@ -13,7 +13,7 @@ fi
 executable_name=$1
 
 # Compile each .c file with gcc
-echo "gcc -o -lm $executable_name $c_files"
+echo "gcc -o $executable_name $c_files -lm"
 echo "==================================================================="
 
 gcc -o $executable_name $c_files -lm

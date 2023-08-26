@@ -1,16 +1,8 @@
 #ifndef NN_H
 #define NN_H
 #include <stdbool.h>
+#include "mtrx.h"
 #define DEBUG false
-
-//actual activation
-#define AN 0
-//not smoothed activation
-#define	ZN 1
-//dC/dAn
-#define DERIV 2
-//prime of smoothing func on zn
-#define ZNPRIME	3
 
 #define SIG 4
 #define RELU 5
@@ -25,23 +17,29 @@
 #define BGRD(nn) (nn->biasGrd)
 #define ACT(nn) (nn->activations)
 #define FUNC(nn) (nn->functions)
+#define ZN(nn) (nn->zn)
+#define ERR(nn) (nn->error)
+#define ZNP(nn) (nn->znprime)
 
 typedef struct nNetwork nNetwork;
 struct nNetwork{
 	bool failFlag;
 	size_t len;
 	size_t* depths;
-	int *functions;
-	double*** weights;
-	double** bias;
-	double*** weightsGrd;
-	double** biasGrd;
-	double*** activations;
+	size_t *functions;
+	mtrx_vector* weights;
+	mtrx_vector* bias;
+	mtrx_vector* weightsGrd;
+	mtrx_vector* biasGrd;
+	mtrx_vector* activations;
+	mtrx_vector* error;
+	mtrx_vector* zn;
+	mtrx_vector* znprime;
+
 };
 
-double rand_double();
-void copy_int_list(int *source, int *functions,int len);
-nNetwork* createNN(size_t len, size_t* depths, int* functions);
+void copy_size_list(size_t *source, size_t *target,size_t len);
+nNetwork* createNN(size_t len, size_t* depths, size_t* functions);
 bool alloc_mtrx(double ***mtrx, size_t len, size_t depth);
 bool alloc_table(double** mtrx, size_t len);
 void fillNN(nNetwork* NN);
@@ -50,12 +48,8 @@ void updateNN(nNetwork* NN, double learning_rate);
 void printNN(nNetwork* NN);
 void printGrd(nNetwork* NN);
 void printACT(nNetwork* NN);
-void printERROR(nNetwork* NN);
+void printZN(nNetwork* NN);
+void printZNP(nNetwork* NN);
+void printERR(nNetwork* NN);
 void freeNN (nNetwork* NN);
-void free_mtrx(double **data, size_t depth);
-void multiply_grd(nNetwork* NN, double value);
-void printTrainData(double** expected, double** input,int len_data,int depthinput, double depthoutput);
-void free3D_mtrx(double ***data, size_t len, size_t* depths);
-void normalize(double **input,int size_data,int len_row,double max);
-
 #endif

@@ -8,13 +8,15 @@
 #define PIXEL_IMG 784
 #define SQR_IMG 28
 #define SIZE_OUT 10
+#define DEBUGIO !true
+#define DEBUGIONN !true
 
 bool readMnistLabels(double ***data,int len_data,bool mode){
-    char* labelfile=mode?"/home/yanis/projects/train-labels-idx1-ubyte":"/home/yanis/projects/t10k-labels-idx1-ubyte";
+    char* labelfile=mode?"./data/train-labels-idx1-ubyte":"./data/t10k-labels-idx1-ubyte";
     FILE* file=NULL;
     file = fopen(labelfile, "rb");
     if (file==NULL) return true;
-#if DEBUG
+#if DEBUGIO
     printf("Reading labels, ");
 #endif
     unsigned char* bytes=malloc(sizeof(int)*(LBL_INFO));
@@ -22,25 +24,25 @@ bool readMnistLabels(double ***data,int len_data,bool mode){
 	fclose(file);
 	return true;
     }
-#if DEBUG
+#if DEBUGIO
     printf("file info:\t");
     fflush(stdout);
 #endif
     for (int i=0;i<LBL_INFO;i++){
 	int info=(bytes[i*4]<<24)|(bytes[i*4+1]<<16)|(bytes[i*4+2]<<8)|bytes[i*4+3];
-#if DEBUG
+#if DEBUGIO
 	 printf("%d\t", info);
 #endif
     }
     for (int i=0;i<len_data;i++){
-#if DEBUG
+#if DEBUGIO
 	printf ("\nimage %d:\t",i);
 #endif
 	    if (fread (bytes, 1, 1, file)!= 1){ 
 		fclose(file);
 		return true;
 	    }
-#if DEBUG
+#if DEBUGIO
 	printf ("%d\t",bytes[0]);
 #endif
 	for (int y=0;y<SIZE_OUT;y++){
@@ -52,11 +54,11 @@ bool readMnistLabels(double ***data,int len_data,bool mode){
 }
 
 bool readMnistIMG(double ***data,int len_data,bool mode){
-    char* imagefile=mode?"/home/yanis/projects/train-images-idx3-ubyte":"/home/yanis/projects/t10k-images-idx3-ubyte";
+    char* imagefile=mode?"./data/train-images-idx3-ubyte":"./data/t10k-images-idx3-ubyte";
     FILE* file=NULL;
     file = fopen(imagefile, "rb");
     if (file==NULL) return true;
-#if DEBUG
+#if DEBUGIO
     printf("Reading images, ");
 #endif
     unsigned char* bytes=malloc(sizeof(int)*(IMG_INFO));
@@ -64,18 +66,18 @@ bool readMnistIMG(double ***data,int len_data,bool mode){
 	fclose(file);
 	return true;
     }
-#if DEBUG
+#if DEBUGIO
     printf("file info:\t");
     fflush(stdout);
 #endif
     for (int i=0;i<IMG_INFO;i++){
 	int info=(bytes[i*4]<<24)|(bytes[i*4+1]<<16)|(bytes[i*4+2]<<8)|bytes[i*4+3];
-#if DEBUG
+#if DEBUGIO
 	printf("%d\t", info);
 #endif
     }
     for (int i=0;i<len_data;i++){
-#if DEBUG
+#if DEBUGIO
 	printf ("\nimage %d\n",i);
 #endif
 	for (int y=0;y<PIXEL_IMG;y++){
@@ -84,7 +86,7 @@ bool readMnistIMG(double ***data,int len_data,bool mode){
 		return true;
 	    }
 	    data[i][0][y]=(double)(bytes[0]);
-#if DEBUG
+#if DEBUGIO
 	    if (data[i][0][y]<100)printf ("0 ");
 	    if (100<data[i][0][y]&&data[i][0][y]<200)printf("- ");
 	    if (data[i][0][y]>200)printf("1 ");
@@ -144,48 +146,65 @@ void free_data_mtrx(double*** data, int nb_sample){
 
 //write a NN to a file
 bool writeNN(char* filename, nNetwork* NN){
-#if DEBUG
+#if DEBUGIONN
     printf ("Saving neural net of size %ld!\n",LEN(NN));
-#endif 
+#endif
+    size_t written=0;
     FILE* file=NULL;
     file = fopen(filename, "wb+");
     if (file==NULL){ return false;}
     if (fwrite (&(LEN(NN)), sizeof(size_t), 1, file)!= 1){ 
 	return false;
     }
-#if DEBUG
+    written+=sizeof(size_t);
+#if DEBUGIONN
     printf ("=");
 #endif
     if (fwrite (DPTH(NN), sizeof(size_t), LEN(NN), file)!=NN->len){
+	printf ("failed to write depths!\n");
 	return false;
     }
-    if (fwrite (FUNC(NN), sizeof(int), LEN(NN), file)!=NN->len){
+    written+=sizeof(size_t)*LEN(NN)*2;
+    if (fwrite (FUNC(NN), sizeof(size_t), LEN(NN), file)!=NN->len){
+	printf("failed to write functions!\n");
 	return false;
-   }
-#if DEBUG
+    }
+#if DEBUGIONN
     printf ("=");
 #endif
-    for (int i=0; i<LEN(NN)-1; i++){
-	if (!writeMtrx(file, W(NN)[i], DPTH(NN)[i], NN->depths[i+1])){ 
-	    return false;
-	}
-	if (fwrite (B(NN)[i], sizeof(double*), DPTH(NN)[i+1], file)!= NN->depths[i+1]){
-    	    return false;
-	}
+    size_t toWrite=0;
+    for (int x=0;x<X(W(NN));x++){
+	toWrite+=Y(W(NN),x)*Z(W(NN),x);
+#if DEBUGIONN
+	printf ("%ld, %ld, %ld toWrite\n",Y(W(NN),x),Z(W(NN),x),toWrite);
+#endif
+
     }
+    if (fwrite (W(NN)->data, sizeof(double), toWrite, file)!=toWrite){
+	printf("failed to write weights!\n");
+	return false;
+    }
+    written+=toWrite*sizeof(double);
+    toWrite=0;
+    for (int x=0;x<X(B(NN));x++)toWrite+=Y(B(NN),x);
+    if (fwrite (B(NN)->data, sizeof(double), toWrite, file)!=toWrite){
+	printf ("failed to write Bias!\n");
+	return false;
+    }
+    written+=toWrite*sizeof(double);
     if (fclose (file) == EOF){return false;}
-#if DEBUG
-    printf (">Saved!\n");
+#if DEBUGIONN
+    printf (">Saved %ld bytes!\n",written);
 #endif
     return true;
 }
-#define DEBUGIO true
 //read a nNetwork from a file
 nNetwork* readNN(char* filename){
-#if DEBUGIO
+#if DEBUGIONN
     printf ("Loading neural networks!\n");
     fflush(stdout);
 #endif
+    size_t loaded=0;
     FILE* file=NULL;
     file = fopen(filename, "rb");
     if (file==NULL){ return NULL;}
@@ -193,7 +212,8 @@ nNetwork* readNN(char* filename){
     if (fread (&len, sizeof(size_t), 1, file)!= 1){
 	return NULL;
     }
-#if DEBUGIO
+    loaded=sizeof(size_t);
+#if DEBUGIONN
     printf ("=");
     fflush(stdout);
 #endif
@@ -202,59 +222,56 @@ nNetwork* readNN(char* filename){
 	free(depths);
 	return NULL;
     }
-    int* functions=(int*)malloc(len*sizeof(int));
-    if (fread(functions, sizeof(int), len,file)!=len){
+    size_t* functions=malloc(len*sizeof(size_t));
+    if (fread(functions, sizeof(size_t), len,file)!=len){
 	free(depths);
 	free(functions);
 	return NULL;
     }
-#if DEBUGIO
+    loaded+=2*len*sizeof(size_t);
+#if DEBUGIONN
     printf ("=");
     fflush(stdout);
 #endif
     nNetwork* NN=createNN(len,depths,functions);
-    free(depths);
-    for (int i=0; i<LEN(NN)-1; i++){
-	if (!readMtrx (file, W(NN)[i], DPTH(NN)[i], NN->depths[i+1])){ 	    
-	    freeNN(NN);
-	    return NULL;
-	}
-	if (fread (B(NN)[i], sizeof(double*), DPTH(NN)[i+1], file)!= NN->depths[i+1]){ 	    
-	    freeNN(NN);
-	    return NULL;
-	}
+    size_t toRead=0;
+    for (int x=0;x<X(W(NN));x++){
+	toRead+=Y(W(NN),x)*Z(W(NN),x);
+#if DEBUGIONN
+	printf ("%ld, %ld, %ld toRead\n",Y(W(NN),x),Z(W(NN),x),toRead);
+	fflush(stdout);
+#endif
     }
-    printf (">Loaded!\n");
+    if (fread (W(NN)->data, sizeof(double), toRead, file)!=toRead){
+	free(NN);
+	free(depths);
+	free(functions);
+	return NULL;
+    }
+    loaded+=toRead*sizeof(double);
+    toRead=0;
+    for (int x=0;x<X(B(NN));x++){
+	toRead+=Y(B(NN),x);
+#if DEBUGIONN
+	printf ("%ld, %ld, %ld toRead\n",Y(B(NN),x),Z(B(NN),x),toRead);
+	fflush(stdout);
+#endif
+    }
+    if (fread (B(NN)->data, sizeof(double), toRead, file)!=toRead){
+	printf("failed to read Bias read %ld bytes!\n",loaded);
+	free(NN);
+	free(depths);
+	free(functions);
+	return NULL;
+    }
+    loaded+=toRead*sizeof(double);
+    free(depths);
+    free(functions);
+    printf (">Loaded %ld bytes!\n",loaded);
     if (fclose (file)== EOF){
 	freeNN(NN);
 	return NULL;
     }
     return NN;
-}
-
-//read matrix values from a file
-bool readMtrx (FILE* file, double** mtrx, size_t len, size_t depth){
-#if DEBUG
-    printf ("=");
-#endif
-    for (int x=0;x<len;x++){
-        if (fread (mtrx[x], sizeof(double), depth, file)!= depth){ 
-		return false;
-	}
-    }
-    return true;
-}
-
-//write mtrx values to a file
-bool writeMtrx (FILE* file, double** mtrx, size_t len, size_t depth){
-#if DEBUG
-	printf ("=");
-#endif 
-	for (int x=0;x<len;x++){
-	    if (fwrite (mtrx[x], sizeof(double), depth, file)!= depth){
-    	    return false;
-	    }
-        }
-    return true;
 }
 
