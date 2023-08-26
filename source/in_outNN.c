@@ -11,7 +11,7 @@
 #define DEBUGIO !true
 
 bool readMnistLabels(double ***data,int len_data,bool mode){
-    char* labelfile=mode?"/home/yanis/projects/train-labels-idx1-ubyte":"/home/yanis/projects/t10k-labels-idx1-ubyte";
+    char* labelfile=mode?"../data/train-labels-idx1-ubyte":"../data/t10k-labels-idx1-ubyte";
     FILE* file=NULL;
     file = fopen(labelfile, "rb");
     if (file==NULL) return true;
@@ -53,7 +53,7 @@ bool readMnistLabels(double ***data,int len_data,bool mode){
 }
 
 bool readMnistIMG(double ***data,int len_data,bool mode){
-    char* imagefile=mode?"/home/yanis/projects/train-images-idx3-ubyte":"/home/yanis/projects/t10k-images-idx3-ubyte";
+    char* imagefile=mode?"../data/train-images-idx3-ubyte":"../data/t10k-images-idx3-ubyte";
     FILE* file=NULL;
     file = fopen(imagefile, "rb");
     if (file==NULL) return true;

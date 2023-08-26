@@ -9,12 +9,12 @@
 #include "errors.h"
 #include "in_outNN.h"
 #include "compute.h"
-#define SIZE_DATA 256 
-#define DP_IN 8
-#define DP_OUT 2
+#define SIZE_DATA 3000
+#define DP_IN 28*28
+#define DP_OUT 10
 #define LR 0.01
-#define EPOCHS 3000
-#define SIZE_BATCH 1
+#define EPOCHS 30
+#define SIZE_BATCH 10
 #define TRAIN true
 #define TEST false
 #define SIZE_TEST 100
@@ -27,30 +27,29 @@ int main()
 		ERROR("train_data is null!\n");
 		return 1;
 	}
-	for (int i=0;i<SIZE_DATA;i++){
-		for (int y=0;y<DP_IN;y++){
-			train_data[i][0][y]=(i>>y)&1;
-		}
-		train_data[i][1][0]=(double)(((int)train_data[i][0][0]^(int)train_data[i][0][1])
-		&&((int)train_data[i][0][2]^(int)train_data[i][0][3])
-		&&((int)train_data[i][0][4]^(int)train_data[i][0][5])
-		&&((int)train_data[i][0][6]^(int)train_data[i][0][7]));
-		train_data[i][1][1]=(double)(!(int)train_data[i][1][0]);
+	if (readMnistIMG(train_data,SIZE_DATA,TRAIN)){
+		ERROR("read train img failed!\n");
+		free_data_mtrx(train_data,SIZE_DATA);
+		return 1;
+	}
+	if (readMnistLabels(train_data,SIZE_DATA,TRAIN)){
+		ERROR("read train labels failed!\n");
+		free_data_mtrx(train_data,SIZE_DATA);
+		return 1;
 	}
 	double*** test_data=init_data_matrix(SIZE_TEST,DP_IN,DP_OUT);	
-	//init the data for the specific problem of xor gate
-	for (int i=0;i<SIZE_TEST;i++){
-		for (int y=0;y<DP_IN;y++){
-			test_data[i][0][y]=(i>>y)&1;
-		}
-		test_data[i][1][0]=(double)(((int)test_data[i][0][0]^(int)test_data[i][0][1])
-		&&((int)test_data[i][0][2]^(int)test_data[i][0][3])
-		&&((int)test_data[i][0][4]^(int)test_data[i][0][5])
-		&&((int)test_data[i][0][6]^(int)test_data[i][0][7]));
-		test_data[i][1][1]=(double)(!(int)test_data[i][1][0]);
-	}
 	if (test_data==NULL){
 		ERROR("test_data is null!\n");
+		return 1;
+	}
+	if (readMnistIMG(test_data,SIZE_TEST,TEST)){
+		ERROR("read test img failed!\n");
+		free_data_mtrx(test_data,SIZE_TEST);
+		return 1;
+	}
+	if (readMnistLabels(test_data,SIZE_TEST,TEST)){
+		ERROR("read test labels failed!\n");
+		free_data_mtrx(test_data,SIZE_TEST);
 		return 1;
 	}
 	
@@ -83,13 +82,13 @@ int main()
 	mtrx* expected=create_mtrx(SIZE_DATA,DP_OUT);
 	shuffle(train_data,SIZE_DATA,DP_IN,DP_OUT,3);	
 	splitData(SIZE_DATA,DP_IN,DP_OUT,train_data,input,expected);
-	//normalize(input,255);
+	normalize(input,255);
 	printf ("data splitted\n");
 	free_data_mtrx(train_data,SIZE_DATA);
 	mtrx* test_input=create_mtrx(SIZE_TEST,DP_IN);
 	mtrx* test_expected=create_mtrx(SIZE_TEST,DP_OUT);
 	splitData(SIZE_TEST,DP_IN,DP_OUT,test_data,test_input,test_expected);
-	//normalize(test_input,255);
+	normalize(test_input,255);
 	free_data_mtrx(test_data,SIZE_TEST);
 	train(expected ,input,test_expected, test_input, NN, SIZE_BATCH, LR, MULTICLASS, EPOCHS);
 	
