@@ -59,6 +59,7 @@ void normalize(mtrx* input, double max);
 void add_mtrx(mtrx_vector *v,int x,double r);
 //add matrix at position x to the one at xp of two vectors if they have the same dimmension
 void add_mtrx_mtrx_v_v(mtrx_vector *v, mtrx_vector *vp,int x,int xp);
+void add_mtrx_mtrx_m_v(mtrx *v, mtrx_vector *vp,int xp);
 //multiply the whole vector by r
 void multiply_vector(mtrx_vector *v, double r);
 void divide_vector(mtrx_vector *v, double r);
@@ -77,16 +78,21 @@ void Relu_mtrx(mtrx_vector* v, int x);
 void sigmoidP_mtrx(mtrx_vector* v, int x);
 void ReluP_mtrx(mtrx_vector* v, int x);
 
-//switch values xyz and xzy from v in vp
-void transpose_values(mtrx_vector *v,mtrx_vector *vp,int x); 
 
 //affect values of one mtrx to another
 void affect_values_vx_vxp(mtrx_vector *vp,mtrx_vector *v,int xp,int x); 
 void affect_values_m_vx(mtrx *vp,mtrx_vector *v,int x);
 void affect_values_mx_vxp(mtrx *v,mtrx_vector *vp,int x,int xp); 
+//switch values xyz and xzy from v in vp
+void transpose_values(mtrx_vector *v,mtrx_vector *vp,int x); 
+void transpose_values_v_mtrx(mtrx_vector *v,mtrx *vp,int x);
 //transposes mtrx
 void transpose(mtrx_vector *v, int x);
 mtrx_vector* get_transpose(mtrx_vector *v, int x);
+//get transposes mtrx 
+mtrx* get_transpose_mtrx(mtrx_vector *v, int x);
 //does dot operation between 2 matrixes
-mtrx_vector* dot(mtrx_vector *v, mtrx_vector *vp,int x,int xp);
+mtrx* dot(mtrx_vector *v, mtrx_vector *vp,int x,int xp);
+mtrx* dot_m_v(mtrx *v, mtrx_vector *vp,int xp);
+mtrx* dot_v_m(mtrx_vector *v, mtrx *vp,int x);
 #endif

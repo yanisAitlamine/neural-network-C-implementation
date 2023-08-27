@@ -74,12 +74,12 @@ void predict(mtrx *input,int x, nNetwork *NN){
     printf("\ninput copied to first layer\n");
     fflush(stdout);
 #endif
-    mtrx_vector* buff,*buff2;
+    mtrx* buff,*buff2;
     for (i=0;i<LEN(NN)-1;i++){
-        buff=get_transpose(W(NN),i);
-        buff2=dot(buff,ACT(NN),0,i);
+        buff=get_transpose_mtrx(W(NN),i);
+        buff2=dot_m_v(buff,ACT(NN),i);
         //transpose(buff2,0);
-        affect_values_vx_vxp(buff2,ZN(NN),0,i+1);
+        affect_values_m_vx(buff2,ZN(NN),i+1);
         add_mtrx_mtrx_v_v(B(NN),ZN(NN),i,i+1);
         activation(NN,i+1);
 #if DEBUGCPT
@@ -93,8 +93,8 @@ void predict(mtrx *input,int x, nNetwork *NN){
         print_mtrx_v(ACT(NN),i+1);
         fflush(stdout);
 #endif
-        free_vector(buff);
-        free_vector(buff2);
+        free_mtrx(buff);
+        free_mtrx(buff2);
     }
 }
 
@@ -171,17 +171,17 @@ void compute_grd(double *expected, nNetwork *NN, int function){
     print_mtrx_v(BGRD(NN),X(BGRD(NN))-1);
 #endif
 
-    mtrx_vector *buff,*buff2;
+    mtrx *buff,*buff2;
     for (i=LEN(NN)-2;i>-1;i--){ 
         derivActivation(NN,i);
         buff=sum_W_Zn_Deriv(i,NN);
-        affect_values_vx_vxp(buff,ERR(NN),0,i);
-        free_vector(buff);
+        affect_values_m_vx(buff,ERR(NN),i);
+        free_mtrx(buff);
         multiply_mtrx_mtrx(ZNP(NN),ERR(NN),i,i);
         if (i>0)add_mtrx_mtrx_v_v(ERR(NN),BGRD(NN),i,i-1);
-        buff=get_transpose(ERR(NN), i+1);
-        buff2=dot(ACT(NN), buff,i,0);
-        add_mtrx_mtrx_v_v(buff2,WGRD(NN),0,i);
+        buff=get_transpose_mtrx(ERR(NN), i+1);
+        buff2=dot_v_m(ACT(NN), buff,i);
+        add_mtrx_mtrx_m_v(buff2,WGRD(NN),i);
 #if DEBUGGRD
     printf("\ngrd computation layer %d:\n",i);
     print_mtrx_v(ACT(NN),i);
@@ -191,13 +191,13 @@ void compute_grd(double *expected, nNetwork *NN, int function){
     print_mtrx_v(WGRD(NN),i);
 #endif
 
-        free_vector(buff);
-        free_vector(buff2);
+        free_mtrx(buff);
+        free_mtrx(buff2);
     }
 }
 
-mtrx_vector* sum_W_Zn_Deriv(int layer, nNetwork* NN){
-    mtrx_vector *result;
+mtrx* sum_W_Zn_Deriv(int layer, nNetwork* NN){
+    mtrx *result;
     result =dot(W(NN), ERR(NN),layer, layer+1);
     return result;
 }
@@ -209,7 +209,10 @@ double test(nNetwork *NN, mtrx* test_input,mtrx *test_expected,size_t function){
         predict (test_input,i, NN);
         expected=get_list_from_m(test_expected,i);
         costs[i]=multnode_cost(expected,ACT(NN),function);
-        if (isnan(costs[i]))print_vector(W(NN));
+        if (isnan(costs[i])){
+            print_vector(W(NN));
+            exit(1);
+        }
 #define DEBUGTEST false
 #if DEBUGTEST 
         printf ("Testing\noutput:");

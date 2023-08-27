@@ -10,14 +10,14 @@ mtrx_vector* create_vector(size_t len, size_t* y, size_t* z){
     printf("\nCreating vector!\n");
     fflush(stdout);
 #endif
-    mtrx_vector *v=malloc(sizeof(mtrx_vector));
+    mtrx_vector *v=calloc(1,sizeof(mtrx_vector));
     X(v)=len;
-    v->y=malloc(len*sizeof(size_t));
+    v->y=calloc(len,sizeof(size_t));
     if (check_malloc(v->y,"Mtrx malloc failed!\n")) {
         free(v);
         return NULL;
     }
-    v->z=malloc(len*sizeof(size_t));
+    v->z=calloc(len,sizeof(size_t));
     if (check_malloc(v->z,"Mtrx malloc failed!\n")) {
         free_vector(v);
         return NULL;
@@ -39,7 +39,7 @@ mtrx_vector* create_vector(size_t len, size_t* y, size_t* z){
 #if DEBUGINIT
             printf("size %ld\n",size);
 #endif
-    v->data=malloc(size*sizeof(double));
+    v->data=calloc(size,sizeof(double));
     if (check_malloc(v->data,"Mtrx malloc failed!\n")){
         free_vector(v);
         return NULL;
@@ -53,10 +53,10 @@ mtrx* create_mtrx(size_t len, size_t depth){
     printf ("v %ld*%ld=%ld\n",len,depth,len*depth);
     fflush(stdout);
 #endif
-    mtrx *v=malloc(sizeof(mtrx));
+    mtrx *v=calloc(1,sizeof(mtrx));
     (*v).x=len;
     (*v).y=depth;
-    v->data=malloc(X(v)*(v->y)*sizeof(double));
+    v->data=calloc(X(v)*(v->y),sizeof(double));
     if (check_malloc(v->data,"Mtrx malloc failed!\n")){
         free_mtrx(v);
         return NULL;
@@ -228,6 +228,19 @@ void add_mtrx_mtrx_v_v(mtrx_vector *v, mtrx_vector *vp,int x,int xp){
     }
 }
 
+//add matrix at position x to the one at xp if they have the same dimmension
+void add_mtrx_mtrx_m_v(mtrx *v, mtrx_vector *vp,int xp){
+    if (X(v)!=Y(vp,xp)||v->y!=Z(vp,xp)){
+        ERROR("Matrix sizes incompatible for addition!\n");
+        return;
+    }
+    for (int i=0;i<X(v);i++){
+        for (int j=0;j<v->y;j++){
+            DATA(vp,get_index(vp,xp,i,j))+=DATA(v,i*v->y+j);
+         }
+    }
+}
+
 void multiply_vector(mtrx_vector *v, double r){
     for (int x=0;x<X(v);x++){
         multiply_mtrx(v,x,r);
@@ -340,6 +353,15 @@ void transpose_values(mtrx_vector *v,mtrx_vector *vp,int x){
     }
 }
 
+void transpose_values_v_mtrx(mtrx_vector *v,mtrx *vp,int x){ 
+    int i,j;
+    for (i=0;i<Y(v,x);i++){
+        for (j=0;j<Z(v,x);j++){
+        DATA(vp,j*vp->y+i)=DATA(v,get_index(v,x,i,j));
+        }
+    }
+}
+
 void affect_values_vx_vxp(mtrx_vector *vp,mtrx_vector *v,int xp,int x){ 
     int i,j;
     for (i=0;i<Y(v,x);i++){
@@ -377,7 +399,7 @@ void transpose(mtrx_vector *v, int x){
     affect_values_vx_vxp(vp,v,0,x);
     free_vector(vp);
 }
-//get transposes mtrx
+//get transposes mtrx vector
 mtrx_vector* get_transpose(mtrx_vector *v, int x){
     size_t new_len[]={Z(v,x)};
     size_t new_dpth[]={Y(v,x)};
@@ -386,24 +408,64 @@ mtrx_vector* get_transpose(mtrx_vector *v, int x){
     return vp;
 }
 
-#define DEBUGDOT !true
-//does dot operation between 2 matrixes
-mtrx_vector* dot(mtrx_vector *v, mtrx_vector *vp,int x,int xp){
-    double current_result=0;
-    size_t new_len[]={Y(v,x)};
-    size_t new_dpth[]={Z(vp,xp)}; 
-    mtrx_vector *vr=create_vector(1,new_len,new_dpth);
-    init_vector(vr);
-    for (int y=0;y<Y(v,x);y++){
-        for (int z=0;z<Z(v,x);z++){
+//get transposes mtrx 
+mtrx* get_transpose_mtrx(mtrx_vector *v, int x){
+    mtrx *vp=create_mtrx(Z(v,x),Y(v,x));
+    transpose_values_v_mtrx(v,vp,x);
+    return vp;
+}
+
+#define DEBUGDOT true
+//does dot operation between 2 matrixes from vectors
+mtrx* dot(mtrx_vector *v, mtrx_vector *vp,int x,int xp){
+    double current_result=0,prev_value;
+    mtrx *vr=create_mtrx(Y(v,x),Z(vp,xp));
+    for (int j=0;j<Y(v,x);j++){
+        for (int z=0;z<Y(vp,xp);z++){
             for (int i=0;i<Z(vp,xp);i++){
-                DATA(vr,get_index(vr,0,y,i))+=DATA(v,get_index(v,x,y,z))*DATA(vp,get_index(vp,xp,z,i));
+                prev_value=DATA(vr,j*vr->y+i);
+                DATA(vr,j*vr->y+i)+=DATA(v,get_index(v,x,j,z))*DATA(vp,get_index(vp,xp,z,i));
 #if DEBUGDOT
-                printf("\ndot compute %d,%d+=%d,%d*%d,%d\n%f+=%f*%f\n",y,i,y,z,z,i,DATA(vr,get_index(vr,0,y,i)),DATA(v,get_index(v,x,y,z)),DATA(vp,get_index(vp,xp,z,i)));
+               if (isnan(DATA(vr,j*vr->y+i))) {
+                printf("\ndot compute v v %d,%d %d,%d+=%d,%d*%d,%d\nprevious value:%f\n%f+=%f*%f\n",x,xp,j,i,j,z,z,i,prev_value,DATA(vr,j*vr->y+i),DATA(v,get_index(v,x,j,z)),DATA(vp,get_index(vp,xp,z,i)));
+                exit(1);
+               }
 #endif 
              }
         }
     }
     return vr;
 }
+//does dot operation between 1 matrixe and one matrix from vector
+mtrx* dot_m_v(mtrx *v, mtrx_vector *vp,int xp){
+    double current_result=0;
 
+    mtrx *vr=create_mtrx(X(v),Z(vp,xp));
+    for (int j=0;j<X(v);j++){
+        for (int z=0;z<Y(vp,xp);z++){
+            for (int i=0;i<Z(vp,xp);i++){
+                DATA(vr,j*vr->y+i)+=DATA(v,j*v->y+z)*DATA(vp,get_index(vp,xp,z,i));
+#if DEBUGDOT
+               if (isnan(DATA(vr,j*vr->y+i))) printf("\ndot compute m v %d %d,%d+=%d,%d*%d,%d\n%f+=%f*%f\n",xp,j,i,j,z,z,i,DATA(vr,j*vr->y+i),DATA(v,j*v->y+z),DATA(vp,get_index(vp,xp,z,i)));
+#endif 
+             }
+        }
+    }
+    return vr;
+}
+mtrx* dot_v_m(mtrx_vector *v, mtrx *vp,int x){
+    double current_result=0;
+
+    mtrx *vr=create_mtrx(Y(v,x),vp->y);
+    for (int j=0;j<Y(v,x);j++){
+        for (int z=0;z<X(vp);z++){
+            for (int i=0;i<vp->y;i++){
+                DATA(vr,j*vr->y+i)+=DATA(v,get_index(v,x,j,z))*DATA(vp,z*vp->y+i);
+#if DEBUGDOT
+                if (isnan(DATA(vr,j*vr->y+i)))printf("\ndot compute v m %d %d,%d+=%d,%d*%d,%d\n%f+=%f*%f\n",x,j,i,j,z,z,i,DATA(vr,j*vr->y+i),DATA(v,get_index(v,x,j,z)),DATA(vp,z*vp->y+i));
+#endif 
+             }
+        }
+    }
+    return vr;
+}

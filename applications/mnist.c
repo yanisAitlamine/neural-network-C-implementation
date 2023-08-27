@@ -4,17 +4,17 @@
 #include <string.h>
 #include <time.h>
 #include <math.h>
-#include "utils.h"
-#include "neuralnet.h"
-#include "errors.h"
-#include "in_outNN.h"
-#include "compute.h"
-#define SIZE_DATA 60000
+#include "../source/utils.h"
+#include "../source/neuralnet.h"
+#include "../source/errors.h"
+#include "../source/in_outNN.h"
+#include "../source/compute.h"
+#define SIZE_DATA 10000
 #define DP_IN 28*28
 #define DP_OUT 10
 #define LR 0.0001
 #define EPOCHS 10
-#define SIZE_BATCH 128
+#define SIZE_BATCH 1
 #define TRAIN true
 #define TEST false
 #define SIZE_TEST 100

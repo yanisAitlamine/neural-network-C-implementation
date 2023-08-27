@@ -18,16 +18,16 @@ nNetwork* createNN(size_t len, size_t* depths,size_t* functions){
 	printf("Creating Network of size %ld!\n",len);
 	fflush(stdout);
 #endif	
-	nNetwork* NN=(nNetwork*)malloc(sizeof(nNetwork));
+	nNetwork* NN=(nNetwork*)calloc(1,sizeof(nNetwork));
 	FF(NN)=false;
 	LEN(NN)=len;
-	DPTH(NN)=(size_t*)malloc(len*sizeof(size_t));
+	DPTH(NN)=(size_t*)calloc(len,sizeof(size_t));
 	if (check_malloc(DPTH(NN),"Depths init failed!\n")){
 	    FF(NN)=true;
 	    return NN;
 	}
 	copy_size_list(depths,DPTH(NN),len);
-	FUNC(NN)=malloc(len*sizeof(size_t));
+	FUNC(NN)=calloc(len,sizeof(size_t));
 	if (check_malloc(FUNC(NN),"function init failed!\n")){
 	    FF(NN)=true;
 	    return NN;
