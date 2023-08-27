@@ -291,7 +291,7 @@ void train(mtrx *train_expected, mtrx *train_input,mtrx *test_expected, mtrx *te
         }
         if (epochs>10) {
             for (int y=0;y<=10;y++) {
-                if (y*(epochs/10)){
+                if (y*(epochs/10)==i){
                     current_cost=test(NN,test_input,test_expected,function);
                     printf(">epochs %d cost: %f\n",i,current_cost);
                 }
