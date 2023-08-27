@@ -12,7 +12,7 @@
 #define SIZE_DATA 10000
 #define DP_IN 28*28
 #define DP_OUT 10
-#define LR 0.0001
+#define LR 0.001
 #define EPOCHS 10
 #define SIZE_BATCH 1
 #define TRAIN true

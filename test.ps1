@@ -9,4 +9,12 @@ if (!$PSBoundParameters.ContainsKey('arg1')){
 rm NNtest.nn
 rm log
 ./build.ps1 test.exe $arg1
-./test.exe >> log
+$startTime = Get-Date
+
+./test.exe >>log
+
+$endTime = Get-Date
+$executionTime = $endTime - $startTime
+
+Write-Host "Execution time: $executionTime"
+"Execution time: $executionTime" >> log
