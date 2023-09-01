@@ -17,5 +17,5 @@ path_to_main=$2
 echo "gcc -o $executable_name $path_to_main $c_files -lm"
 echo "==================================================================="
 
-gcc -o $executable_name $c_files -lm
+gcc -o $executable_name $path_to_main $c_files -lm
 

@@ -146,5 +146,5 @@ int main(){
 
     end_time = clock(); 
     elapsed_time = end_time-start_time;
-    printf ("Time elapsed recorded in the program %f, clocks per sec %f\n",((double)elapsed_time)/CLOCKS_PER_SEC);
+    printf ("Time elapsed recorded in the program %f!\n",((double)elapsed_time)/CLOCKS_PER_SEC);
 }
