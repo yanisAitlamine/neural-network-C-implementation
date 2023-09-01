@@ -137,31 +137,41 @@ double multnode_cost(double *expected, mtrx_vector *v, int function){
 
 #define DEBUGGRD !true
 
-void compute_grd(double *expected, nNetwork *NN, int function){
+void compute_grd(mtrx *expected, nNetwork *NN, int rank, int function){
     int i,x,y;
     int len=Y(ERR(NN),X(ERR(NN))-1),start=total_size(ERR(NN))-len;
     derivActivation(NN,LEN(NN)-1);
 #if DEBUGGRD
     printf("\nGRD DEBUG\nExpected:\n");
 #endif
-    for (i=0;i<len;i++){
+    switch (function){
+        case MULTICLASS:
+            for (i=0;i<len;i++){
 #if DEBUGGRD
-    printf("%.1f\t",expected[i]);
+                printf("%.1f\t",expected[i]);
 #endif
-        switch (function){
-            case MULTICLASS:
-                DATA(ERR(NN),i+start)=expected[i]-DATA(ACT(NN),i+start);
-            break;
-            case BINARY:
-                DATA(ERR(NN),i+start)=DATA(ZNP(NN),i+start)*binary_prime(expected[i],DATA(ACT(NN),i+start));
-            break;
-            case MSE:
-            case MAE:
-            case REGRESSION:
-            case SQR_REG:
-                DATA(ERR(NN),i+start)=DATA(ZNP(NN),i+start)*binary_prime(expected[i],DATA(ACT(NN),i+start));
-            break;
-        }
+                DATA(ERR(NN),i+start)=DATA(expected,rank*len+i)-DATA(ACT(NN),i+start);
+            }
+        break;
+        case BINARY:
+            for (i=0;i<len;i++){
+#if DEBUGGRD
+                printf("%.1f\t",expected[i]);
+#endif
+                DATA(ERR(NN),i+start)=DATA(ZNP(NN),i+start)*binary_prime(DATA(expected,rank*len+i),DATA(ACT(NN),i+start));
+            }
+        break;
+        case MSE:
+        case MAE:
+        case REGRESSION:
+        case SQR_REG:
+            for (i=0;i<len;i++){
+#if DEBUGGRD
+                printf("%.1f\t",expected[i]);
+#endif
+                DATA(ERR(NN),i+start)=DATA(ZNP(NN),i+start)*binary_prime(DATA(expected,rank*len+i),DATA(ACT(NN),i+start));
+            }
+        break;
     }
     add_mtrx_mtrx_v_v(ERR(NN),BGRD(NN),X(ERR(NN))-1,X(BGRD(NN))-1);
 #if DEBUGGRD
@@ -232,7 +242,6 @@ double test(nNetwork *NN, mtrx* test_input,mtrx *test_expected,size_t function){
 #define DEBUGB !true
 
 void batch(mtrx *train_expected, mtrx *train_input, int rank, nNetwork* NN, int size_batch, double learning_rate, int function){
-	double* expected;
     init_vector(WGRD(NN));
     init_vector(BGRD(NN));
 	for  (int i=0;i<size_batch;i++){
@@ -241,8 +250,7 @@ void batch(mtrx *train_expected, mtrx *train_input, int rank, nNetwork* NN, int 
     fflush(stdout);
 #endif
             predict (train_input,rank+i, NN);
-            expected=get_list_from_m(train_expected,rank+i);
-            compute_grd(expected,NN,function);
+            compute_grd(train_expected,NN,rank+i,function);
 #if DEBUGB
             printf ("\n\nBATCH DEBUG\nExpected [");
             for (int y=0;y<DPTH(NN)[LEN(NN)-1];y++){
@@ -252,7 +260,6 @@ void batch(mtrx *train_expected, mtrx *train_input, int rank, nNetwork* NN, int 
             printACT(NN);
             printERR(NN);
 #endif
-            free(expected);
         }
 	    multiply_vector(WGRD(NN),pow(size_batch,-1));
         multiply_vector(BGRD(NN),pow(size_batch,-1));

@@ -20,4 +20,4 @@ $gccArgs = "-o $arg1 $arg2 $($c_files.FullName -join ' ') -lm"
 echo "gcc $gccArgs"
 echo "==================================================================="
 
-Start-Process -Wait -FilePath "gcc" -ArgumentList $gccArgs
+Start-Process -Wait -FilePath "gcc" -ArgumentList $gccArgs -RedirectStandardError "errors.txt"

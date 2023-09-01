@@ -1,17 +1,24 @@
 param(
-    [string]$arg1
+    [string]$arg1,
+    [string]$arg2
 )
 if (!$PSBoundParameters.ContainsKey('arg1')){
     echo "Please provide the name of the resulting executable."
-    echo "Usage: ./test.ps1 = <main_path>"
+    echo "Usage: ./test.ps1 <executable_name> <main_path>"
+    exit 1
+}
+if (!$PSBoundParameters.ContainsKey('arg2')){
+    echo "Please provide the name of the resulting executable."
+    echo "Usage: ./test.ps1 <executable_name> <main_path>"
     exit 1
 }
 rm NNtest.nn
 rm log
-./build.ps1 test.exe $arg1
+rm errors.txt
+./build.ps1 $arg1 $arg2
 $startTime = Get-Date
 
-./test.exe >>log
+Invoke-Expression ".\$arg1 > log 2>&1"
 
 $endTime = Get-Date
 $executionTime = $endTime - $startTime
