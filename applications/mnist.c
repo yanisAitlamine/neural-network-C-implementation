@@ -9,12 +9,12 @@
 #include "../source/errors.h"
 #include "../source/in_outNN.h"
 #include "../source/compute.h"
-#define SIZE_DATA 20000
+#define SIZE_DATA 10000
 #define DP_IN 28*28
 #define DP_OUT 10
 #define LR 0.001
 #define EPOCHS 10
-#define SIZE_BATCH 100
+#define SIZE_BATCH 1
 #define TRAIN true
 #define TEST false
 #define SIZE_TEST 1000
