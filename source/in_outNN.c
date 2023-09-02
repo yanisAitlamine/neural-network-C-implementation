@@ -20,7 +20,8 @@ bool readMnistLabels(double ***data,int len_data,bool mode){
     printf("Reading labels, ");
 #endif
     unsigned char* bytes=malloc(sizeof(int)*(LBL_INFO));
-    if (fread (bytes, sizeof(int), LBL_INFO, file)!= LBL_INFO){ 
+    if (fread (bytes, sizeof(int), LBL_INFO, file)!= LBL_INFO){
+	free(bytes);
 	fclose(file);
 	return true;
     }
@@ -39,6 +40,7 @@ bool readMnistLabels(double ***data,int len_data,bool mode){
 	printf ("\nimage %d:\t",i);
 #endif
 	    if (fread (bytes, 1, 1, file)!= 1){ 
+		free(bytes);
 		fclose(file);
 		return true;
 	    }
@@ -49,6 +51,7 @@ bool readMnistLabels(double ***data,int len_data,bool mode){
 	    if (y==bytes[0]){data[i][1][y]=1;}else{data[i][1][y]=0;}
 	}
     }
+    free(bytes);
     fclose(file);
     return false;
 }
@@ -63,6 +66,7 @@ bool readMnistIMG(double ***data,int len_data,bool mode){
 #endif
     unsigned char* bytes=malloc(sizeof(int)*(IMG_INFO));
     if (fread (bytes, sizeof(int), IMG_INFO, file)!= IMG_INFO){ 
+	free(bytes);
 	fclose(file);
 	return true;
     }
@@ -82,6 +86,7 @@ bool readMnistIMG(double ***data,int len_data,bool mode){
 #endif
 	for (int y=0;y<PIXEL_IMG;y++){
 	    if (fread (bytes, 1, 1, file)!= 1){ 
+		free(bytes);
 		fclose(file);
 		return true;
 	    }
@@ -96,6 +101,7 @@ bool readMnistIMG(double ***data,int len_data,bool mode){
     }
 
     printf ("\nIMG file read with success!\n");
+    free(bytes);
     fclose(file);
     return false;
 }

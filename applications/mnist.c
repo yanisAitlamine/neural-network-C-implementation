@@ -52,7 +52,6 @@ int main()
 		free_data_mtrx(test_data,SIZE_TEST);
 		return 1;
 	}
-	
 	char* file="NNtest.nn";
 	nNetwork* NN=NULL;
 	if (fopen(file,"r")==NULL){

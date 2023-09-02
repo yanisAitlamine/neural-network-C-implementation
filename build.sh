@@ -14,8 +14,8 @@ executable_name=$1
 path_to_main=$2
 
 # Compile each .c file with gcc
-echo "gcc -o $executable_name $path_to_main $c_files -lm"
+echo "gcc -O3 -o $executable_name $path_to_main $c_files -lm"
 echo "==================================================================="
 
-gcc -o $executable_name $path_to_main $c_files -lm
+gcc -O3 -o $executable_name $path_to_main $c_files -lm
 

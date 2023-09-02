@@ -15,7 +15,7 @@ if (!$PSBoundParameters.ContainsKey('arg2')){
     echo "Usage: ./build.ps1 <executable_name> <main_path>"
     exit 1
 }
-$gccArgs = "-o $arg1 $arg2 $($c_files.FullName -join ' ') -lm"
+$gccArgs = "-O3 -o $arg1 $arg2 $($c_files.FullName -join ' ') -lm"
 
 echo "gcc $gccArgs"
 echo "==================================================================="
