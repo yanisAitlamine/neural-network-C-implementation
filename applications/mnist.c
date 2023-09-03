@@ -113,7 +113,7 @@ int main()
 	for (int i=0;i<X(test_expected);i++){
 		costs[i]/=max_cost;
 	}
-	printf ("Total accuracy: %f"mean_double(costs,X(test_expected)));
+	printf ("Total accuracy: %f",mean_double(costs,X(test_expected)));
 	free_mtrx(input);
 	free_mtrx(expected);
 	free_mtrx(test_input);
