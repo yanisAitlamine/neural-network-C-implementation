@@ -11,6 +11,7 @@
 #define ERR_RETURN 10000000000000000.0
 #include <math.h>
 
+double pow_double_int(double x, int n);
 double rand_decimal();
 double sigmoid(double n);
 double sigmoidprime(double n);

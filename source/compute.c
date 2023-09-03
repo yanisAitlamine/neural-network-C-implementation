@@ -213,13 +213,15 @@ mtrx* sum_W_Zn_Deriv(int layer, nNetwork* NN){
 }
 
 double test(nNetwork *NN, mtrx* test_input,mtrx *test_expected,size_t function){
-    double costs[X(test_expected)];
+    double accuracy[X(test_expected)];
+    double max_value_cost=0;
     double* expected; 
     for (int i=0;i<X(test_expected);i++){
         predict (test_input,i, NN);
         expected=get_list_from_m(test_expected,i);
-        costs[i]=multnode_cost(expected,ACT(NN),function);
-        if (isnan(costs[i])){
+        accuracy[i]=multnode_cost(expected,ACT(NN),function);
+        if (accuracy[i]>max_value_cost) max_value_cost=accuracy[i];
+        if (isnan(accuracy[i])){
             print_vector(W(NN));
             exit(1);
         }
@@ -231,12 +233,15 @@ double test(nNetwork *NN, mtrx* test_input,mtrx *test_expected,size_t function){
         for (int y=0;y<DPTH(NN)[LEN(NN)-1];y++){
             printf("%.1f ",expected[y]);
         }
-        printf("]\ncosts: ");
-    	printf("%f\n",costs[i]);
+        printf("]\naccuracy: ");
+    	printf("%f\n",accuracy[i]);
 #endif
         free(expected);
     }
-    return mean_double(costs,X(test_expected));
+    for (int i=0;i<X(test_expected);i++){
+        accuracy[i]/=max_value_cost;
+    }
+    return mean_double(accuracy,X(test_expected));
 }
 
 #define DEBUGB !true
@@ -261,8 +266,8 @@ void batch(mtrx *train_expected, mtrx *train_input, int rank, nNetwork* NN, int 
             printERR(NN);
 #endif
         }
-	    multiply_vector(WGRD(NN),pow(size_batch,-1));
-        multiply_vector(BGRD(NN),pow(size_batch,-1));
+	    multiply_vector(WGRD(NN),pow_double_int(size_batch,-1));
+        multiply_vector(BGRD(NN),pow_double_int(size_batch,-1));
 #if DEBUGB
         printGrd(NN);
 #endif
@@ -273,7 +278,7 @@ void batch(mtrx *train_expected, mtrx *train_input, int rank, nNetwork* NN, int 
 void train(mtrx *train_expected, mtrx *train_input,mtrx *test_expected, mtrx *test_input, nNetwork* NN, int size_batch, double learning_rate, int function, int epochs){
    printf ("training for %d epochs over batch of size %d\n",epochs, size_batch);
 
-    double current_cost;
+    double current_accuracy;
     size_t size_data=X(train_input), size_test=X(test_input);
 #if DEBUGCPT
     printf("\tlr: %f\tfunction: %d\tsize_data: %ld\tsize_test: %ld\n",learning_rate,function,size_data,size_test);
@@ -299,13 +304,13 @@ void train(mtrx *train_expected, mtrx *train_input,mtrx *test_expected, mtrx *te
         if (epochs>10) {
             for (int y=0;y<=10;y++) {
                 if (y*(epochs/10)==i){
-                    current_cost=test(NN,test_input,test_expected,function);
-                    printf(">epochs %d cost: %f\n",i,current_cost);
+                    current_accuracy=test(NN,test_input,test_expected,function);
+                    printf(">epochs %d accuracy: %f\n",i,current_accuracy);
                 }
             }
         }else {
-            current_cost=test(NN,test_input,test_expected,function);
-            printf(">epochs %d cost: %f\n",i,current_cost);
+            current_accuracy=test(NN,test_input,test_expected,function);
+            printf(">epochs %d accuracy: %f\n",i,current_accuracy);
         }
     }
     printf(">Finished\n");

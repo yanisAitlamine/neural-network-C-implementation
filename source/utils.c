@@ -4,7 +4,18 @@
 #include <string.h>
 #include "utils.h"
 
-
+double pow_double_int(double x, int n){
+    double result = 1.0;
+    if (n>0){
+        for (int i=0;i<n;i++) result*=x;
+        return result;
+    }
+    if (n<0){
+        for (int i=0;i<n;i++) result/=x;
+        return result;
+    }
+    return result;
+}
 
 double rand_decimal(){
     return (double)rand()/(double)RAND_MAX;
@@ -36,7 +47,7 @@ double regression_cost(double expected, double output){
 }
 
 double sqr_regression(double expected, double output){
-    return pow(expected-output,2);
+    return pow_double_int(expected-output,2);
 }
 
 // case expected = 0 output=1 handled, would divide by 0

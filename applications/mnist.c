@@ -14,7 +14,7 @@
 #define DP_OUT 10
 #define LR 0.001
 #define EPOCHS 10
-#define SIZE_BATCH 1
+#define SIZE_BATCH 50
 #define TRAIN true
 #define TEST false
 #define SIZE_TEST 1000
@@ -91,7 +91,7 @@ int main()
 	free_data_mtrx(test_data,SIZE_TEST);
 	train(expected ,input,test_expected, test_input, NN, SIZE_BATCH, LR, MULTICLASS, EPOCHS);
 	
-	double costs[SIZE_TEST];
+	double costs[SIZE_TEST],max_cost=0;
 	double* expect; 
 	for (int i=0;i<X(test_expected);i++){
 		predict (test_input,i, NN);
@@ -99,6 +99,7 @@ int main()
 		//print_mtrx_v(ACT(NN),0);
 		expect=get_list_from_m(test_expected,i);
 		costs[i]=multnode_cost(expect,ACT(NN),MULTICLASS);
+		if (costs[i]>max_cost)max_cost=costs[i];
 		printf ("\ntesting\noutput:");
 		print_mtrx_v(ACT(NN),X(ACT(NN))-1);
 		printf ("Expected [");
@@ -109,6 +110,10 @@ int main()
 		printf("%f\n",costs[i]);
 		free(expect);
 	}
+	for (int i=0;i<X(test_expected);i++){
+		costs[i]/=max_cost;
+	}
+	printf ("Total accuracy: %f"mean_double(costs,X(test_expected)));
 	free_mtrx(input);
 	free_mtrx(expected);
 	free_mtrx(test_input);
