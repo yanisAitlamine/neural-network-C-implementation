@@ -241,7 +241,7 @@ double test(nNetwork *NN, mtrx* test_input,mtrx *test_expected,size_t function){
     for (int i=0;i<X(test_expected);i++){
         accuracy[i]/=max_value_cost;
     }
-    return mean_double(accuracy,X(test_expected));
+    return 1-mean_double(accuracy,X(test_expected));
 }
 
 #define DEBUGB !true
