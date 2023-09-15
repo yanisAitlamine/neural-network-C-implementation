@@ -124,7 +124,7 @@ void print_mtrx(mtrx *m){
          }
          printf("\n");
     }
-    
+
 }
 
 //print the list at x
@@ -152,7 +152,7 @@ void init_mtrx(mtrx *m){
 
 void init_vector_rand(mtrx_vector *v){
     for (int i=0;i<X(v);i++){
-        init_mtrx(M(v,i));
+        init_mtrx_rand(M(v,i));
     }
 }
 

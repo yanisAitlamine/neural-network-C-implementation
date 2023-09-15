@@ -75,7 +75,7 @@ int main()
 		}
 		fillNN(NN);
 		printf("filled correctly!\n");
-		//printNN(NN);
+		printNN(NN);
 		if (!writeNN (file, NN)){ERROR("failed to write!\n");}
 		freeNN(NN);
 	}
