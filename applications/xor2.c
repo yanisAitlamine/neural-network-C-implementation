@@ -99,22 +99,19 @@ int main()
 	train(expected ,input,test_expected, test_input, NN, SIZE_BATCH, LR, MULTICLASS, EPOCHS);
 	
 	double costs[SIZE_TEST];
-	double* expect; 
-	for (int i=0;i<X(test_expected);i++){
+	for (int i=0;i<Y(test_expected);i++){
 		predict (test_input,i, NN);
 		printf("\ninputs:\n");
-		print_mtrx_v(ACT(NN),0);
-		expect=get_list_from_m(test_expected,i);
-		costs[i]=multnode_cost(expect,ACT(NN),MULTICLASS);
+		print_vector(ACT(NN));
+		costs[i]=multnode_cost(test_expected->data[i],ACT(NN)->data[X(ACT(NN))-1],MULTICLASS);
 		printf ("\ntesting\noutput:");
-		print_mtrx_v(ACT(NN),X(ACT(NN))-1);
+		print_mtrx(ACT(NN)->data[X(ACT(NN))-1]);
 		printf ("Expected [");
 		for (int y=0;y<DPTH(NN)[LEN(NN)-1];y++){
-			printf("%.1f ",expect[y]);
+			printf("%.1f ",test_expected->data[i][y]);
 		}
 		printf("]\ncosts: ");
 		printf("%f\n",costs[i]);
-		free(expect);
 	}
 	free_mtrx(input);
 	free_mtrx(expected);

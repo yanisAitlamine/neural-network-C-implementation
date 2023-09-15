@@ -27,4 +27,5 @@ double sum_double(double* data, int size_data);
 double mean_double(double* data,int size_data);
 void swapTables(double ***data,int base,int target,int depth_in,int depth_out);
 void shuffle(double*** data,int len,int depth_in,int depth_out,int rounds);
+
 #endif

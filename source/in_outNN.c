@@ -155,53 +155,37 @@ bool writeNN(char* filename, nNetwork* NN){
 #if DEBUGIONN
     printf ("Saving neural net of size %ld!\n",LEN(NN));
 #endif
-    size_t written=0;
     FILE* file=NULL;
     file = fopen(filename, "wb+");
     if (file==NULL){ return false;}
     if (fwrite (&(LEN(NN)), sizeof(size_t), 1, file)!= 1){ 
 	return false;
     }
-    written+=sizeof(size_t);
-#if DEBUGIONN
-    printf ("=");
-#endif
     if (fwrite (DPTH(NN), sizeof(size_t), LEN(NN), file)!=NN->len){
 	printf ("failed to write depths!\n");
 	return false;
     }
-    written+=sizeof(size_t)*LEN(NN)*2;
     if (fwrite (FUNC(NN), sizeof(size_t), LEN(NN), file)!=NN->len){
 	printf("failed to write functions!\n");
 	return false;
     }
-#if DEBUGIONN
-    printf ("=");
-#endif
-    size_t toWrite=0;
     for (int x=0;x<X(W(NN));x++){
-	toWrite+=Y(W(NN),x)*Z(W(NN),x);
-#if DEBUGIONN
-	printf ("%ld, %ld, %ld toWrite\n",Y(W(NN),x),Z(W(NN),x),toWrite);
-#endif
-
+        for (int i=0;i<Y(M(W(NN),x));i++){
+            if (fwrite (M(W(NN),x)->data[i], sizeof(double), Z(M(W(NN),x)), file)!=Z(M(W(NN),x))){
+	            printf("failed to write weights!\n");
+	            return false;
+            }
+        }
     }
-    if (fwrite (W(NN)->data, sizeof(double), toWrite, file)!=toWrite){
-	printf("failed to write weights!\n");
-	return false;
+    for (int x=0;x<X(B(NN));x++){
+        for (int i=0;i<Y(M(B(NN),x));i++){
+            if (fwrite (M(B(NN),x)->data[i], sizeof(double), Z(M(B(NN),x)), file)!=Z(M(B(NN),x))){
+	            printf("failed to write Bias!\n");
+	            return false;
+            }
+        }
     }
-    written+=toWrite*sizeof(double);
-    toWrite=0;
-    for (int x=0;x<X(B(NN));x++)toWrite+=Y(B(NN),x);
-    if (fwrite (B(NN)->data, sizeof(double), toWrite, file)!=toWrite){
-	printf ("failed to write Bias!\n");
-	return false;
-    }
-    written+=toWrite*sizeof(double);
     if (fclose (file) == EOF){return false;}
-#if DEBUGIONN
-    printf (">Saved %ld bytes!\n",written);
-#endif
     return true;
 }
 //read a nNetwork from a file
@@ -210,7 +194,6 @@ nNetwork* readNN(char* filename){
     printf ("Loading neural networks!\n");
     fflush(stdout);
 #endif
-    size_t loaded=0;
     FILE* file=NULL;
     file = fopen(filename, "rb");
     if (file==NULL){ return NULL;}
@@ -218,11 +201,6 @@ nNetwork* readNN(char* filename){
     if (fread (&len, sizeof(size_t), 1, file)!= 1){
 	return NULL;
     }
-    loaded=sizeof(size_t);
-#if DEBUGIONN
-    printf ("=");
-    fflush(stdout);
-#endif
     size_t* depths=(size_t*)malloc(len*sizeof(size_t));
     if (fread(depths, sizeof(size_t), len,file)!=len){
 	free(depths);
@@ -234,46 +212,25 @@ nNetwork* readNN(char* filename){
 	free(functions);
 	return NULL;
     }
-    loaded+=2*len*sizeof(size_t);
-#if DEBUGIONN
-    printf ("=");
-    fflush(stdout);
-#endif
     nNetwork* NN=createNN(len,depths,functions);
-    size_t toRead=0;
     for (int x=0;x<X(W(NN));x++){
-	toRead+=Y(W(NN),x)*Z(W(NN),x);
-#if DEBUGIONN
-	printf ("%ld, %ld, %ld toRead\n",Y(W(NN),x),Z(W(NN),x),toRead);
-	fflush(stdout);
-#endif
+        for (int i=0;i<Y(M(W(NN),x));i++){
+            if (fread (M(W(NN),x)->data[i], sizeof(double), Z(M(W(NN),x)), file)!=Z(M(W(NN),x))){
+	            printf("failed to write weights!\n");
+	            return false;
+            }
+        }
     }
-    if (fread (W(NN)->data, sizeof(double), toRead, file)!=toRead){
-	free(NN);
-	free(depths);
-	free(functions);
-	return NULL;
-    }
-    loaded+=toRead*sizeof(double);
-    toRead=0;
     for (int x=0;x<X(B(NN));x++){
-	toRead+=Y(B(NN),x);
-#if DEBUGIONN
-	printf ("%ld, %ld, %ld toRead\n",Y(B(NN),x),Z(B(NN),x),toRead);
-	fflush(stdout);
-#endif
+        for (int i=0;i<Y(M(B(NN),x));i++){
+            if (fread (M(B(NN),x)->data[i], sizeof(double), Z(M(B(NN),x)), file)!=Z(M(B(NN),x))){
+	            printf("failed to write Bias!\n");
+	            return false;
+            }
+        }
     }
-    if (fread (B(NN)->data, sizeof(double), toRead, file)!=toRead){
-	printf("failed to read Bias read %ld bytes!\n",loaded);
-	free(NN);
-	free(depths);
-	free(functions);
-	return NULL;
-    }
-    loaded+=toRead*sizeof(double);
     free(depths);
     free(functions);
-    printf (">Loaded %ld bytes!\n",loaded);
     if (fclose (file)== EOF){
 	freeNN(NN);
 	return NULL;

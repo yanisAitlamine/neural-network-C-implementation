@@ -1,98 +1,66 @@
 #ifndef MTRX
 #define MTRX
+//#include <cuda_runtime.h>
 #include "utils.h"
 #include "errors.h"
-#define X(vector) (vector->x)
-#define Y(vector,i) (vector->y[i])
-#define Z(vector,i) (vector->z[i])
-#define DATA(vector,i) (vector->data[i])
 
-typedef struct{
+typedef struct mtrx{
+	size_t y;
+	size_t z;
+	double** data;
+	double** cd_data;
+}mtrx;
+typedef struct mtrx_vector{
 	size_t x;
-	size_t *y;
-	size_t *z;
-	double* data;
+	mtrx** data;
 }mtrx_vector;
 
-typedef struct{
-	size_t x;
-	size_t y;
-	double* data;
-}mtrx;
+#define X(v) (v->x)
+#define Y(m) (m->y)
+#define Z(m) (m->z)
+#define M(v,i) (v->data[i])
+#define DATA(m,i,j) (m->data[i][j])
+#define CD_DATA(m,i,j) (m->cd_data[i][j])
 
 
-//create vector
+
 mtrx_vector* create_vector(size_t len, size_t* y, size_t* z);
-//create vector
 mtrx* create_mtrx(size_t len, size_t depth);
-//free vector
 void free_vector(mtrx_vector *v);
 void free_mtrx(mtrx *v);
-//return the total size
-size_t total_size(mtrx_vector* v);
-//get the absolute index of v[x][y][z]
-int get_index(mtrx_vector *v,int x,int y,int z);
-double *get_mtrx(mtrx_vector *v, int x);
-double *get_list_from_m(mtrx *v, int x);
-//write a list in the matrix vector regardless of the shape be careful
-void write_list_in_vector(double* list,mtrx_vector *v, int x, size_t size_list);
-void write_list(double* list,mtrx* v, int x,size_t size_list);
+void write_list_in_mtrx(double* list, mtrx *m, int rank, size_t size_list);
 //split data set if entries and expected are a simple list of activations
 void splitData(int num_obj,size_t len_in, size_t len_out,double ***data, mtrx* input, mtrx* expected);
 //print the whole vector
 void print_vector(mtrx_vector *v);
-//print the matrix at position [x]
-void print_mtrx_v(mtrx_vector *v,int x);
-void print_mtrx_m(mtrx *v);
-void print_list_m(mtrx *v,int x);
-//init data to 0
+//print the matrix
+void print_mtrx(mtrx *m);
+//print the list from mtrx at x
+void print_list_m(mtrx *m,int x);
 void init_vector(mtrx_vector *v);
-//init mtrx to rand
-void init_mtrx(mtrx_vector *v,int x);
-//init data to 0
+void init_mtrx(mtrx *m);
 void init_vector_rand(mtrx_vector *v);
-//init mtrx to 0
-void init_mtrx_rand(mtrx_vector *v,int x);
-//normalize values to max
+void init_mtrx_rand(mtrx *m);
 void normalize(mtrx* input, double max);
-//add i to matrix
-void add_mtrx(mtrx_vector *v,int x,double r);
-//add matrix at position x to the one at xp of two vectors if they have the same dimmension
-void add_mtrx_mtrx_v_v(mtrx_vector *v, mtrx_vector *vp,int x,int xp);
-void add_mtrx_mtrx_m_v(mtrx *v, mtrx_vector *vp,int xp);
-//multiply the whole vector by r
-void multiply_vector(mtrx_vector *v, double r);
-void divide_vector(mtrx_vector *v, double r);
-//return max of a matrix
-double max_mtrx(mtrx_vector *v, int x);
-//return max of a vector
+void add_to_v(mtrx_vector *v,double r);
+void add_to_mtrx(mtrx *m,double r);
+//add matrix at position x to the one at xp if they have the same dimmension
+void add_v_to_v(mtrx_vector *v, mtrx_vector *vp);
+//add matrix m to mp if they have the same dimmension
+void add_mtrx_to_mtrx(mtrx *m, mtrx *mp);
+void multiply_v(mtrx_vector *v,double r);
+void multiply_mtrx(mtrx *m,double r);
+void divide_v(mtrx_vector *v,double r);
+void divide_mtrx(mtrx *m,double r);
+void multiply_v_by_v(mtrx_vector *v, mtrx_vector *vp);
+void multiply_mtrx_by_mtrx(mtrx *m, mtrx *mp);
+void apply_on_mtrx(mtrx *m,double (*func)(double));
+void apply_from_mtrx_into(mtrx *m,mtrx *mp,double (*func)(double));
+double max_mtrx(mtrx *m);
 double max_vector(mtrx_vector *v);
-//multiply mtrx by i
-void multiply_mtrx(mtrx_vector *v,int x, double r);
-void multiply_mtrx_mtrx(mtrx_vector *v, mtrx_vector *vp,int x,int xp);
-void divide_mtrx(mtrx_vector *v,int x, double r);
-
-void exp_mtrx(mtrx_vector *v,int x);
-void sigmoid_mtrx(mtrx_vector* v, int x);
-void Relu_mtrx(mtrx_vector* v, int x);
-void sigmoidP_mtrx(mtrx_vector* v, int x);
-void ReluP_mtrx(mtrx_vector* v, int x);
-
-
-//affect values of one mtrx to another
-void affect_values_vx_vxp(mtrx_vector *vp,mtrx_vector *v,int xp,int x); 
-void affect_values_m_vx(mtrx *vp,mtrx_vector *v,int x);
-void affect_values_mx_vxp(mtrx *v,mtrx_vector *vp,int x,int xp); 
-//switch values xyz and xzy from v in vp
-void transpose_values(mtrx_vector *v,mtrx_vector *vp,int x); 
-void transpose_values_v_mtrx(mtrx_vector *v,mtrx *vp,int x);
-//transposes mtrx
-void transpose(mtrx_vector *v, int x);
-mtrx_vector* get_transpose(mtrx_vector *v, int x);
-//get transposes mtrx 
-mtrx* get_transpose_mtrx(mtrx_vector *v, int x);
-//does dot operation between 2 matrixes
-mtrx* dot(mtrx_vector *v, mtrx_vector *vp,int x,int xp);
-mtrx* dot_m_v(mtrx *v, mtrx_vector *vp,int xp);
-mtrx* dot_v_m(mtrx_vector *v, mtrx *vp,int x);
+mtrx* get_transpose(mtrx *m); 
+void affect_values_mtrx_to_mtrx(mtrx *m,mtrx *mp); 
+void affect_values_v_to_v(mtrx_vector *v,mtrx_vector *vp);
+//does dot operation between 2 matrixes m into mp
+mtrx* dot(mtrx *m, mtrx *mp);
 #endif

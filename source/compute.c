@@ -7,38 +7,38 @@
 
 // Softmax activation function
 void softmax(nNetwork* NN, int layer) {
-    double max_val = max_mtrx(ZN(NN),layer);
+    double max_val = max_mtrx(M(ZN(NN),layer));
     double sum_exp = 0.0;
-    add_mtrx(ACT(NN),layer,-max_val); 
-    exp_mtrx(ACT(NN),layer);
+    add_to_mtrx(M(ACT(NN),layer),-max_val); 
+    apply_on_mtrx(M(ACT(NN),layer),exp);
     for (int i = 0; i < DPTH(NN)[layer]; i++) {
-        sum_exp +=  DATA(ACT(NN),get_index(ACT(NN),layer,i,0));
+        sum_exp +=  M(ACT(NN),layer)->data[i][0];
     }
 
-    divide_mtrx(ACT(NN),layer,sum_exp);
+    divide_mtrx(M(ACT(NN),layer),sum_exp);
 }
 
 // Derivative of softmax
 void softmaxPrime(nNetwork *NN,int layer) {
-    for (int y=0;y<Y(ZNP(NN),layer);y++){
+    for (int y=0;y<Y(M(ZNP(NN),layer));y++){
         for (int i = 0; i < DPTH(NN)[layer]; i++) {
             if (i==y) {
-                DATA(ZNP(NN),get_index(ZNP(NN),layer,y,0)) += DATA(ACT(NN),get_index(ACT(NN),layer,i,0)) * (1.0 - DATA(ACT(NN),get_index(ACT(NN),layer,i,0)));
+                DATA(M(ZNP(NN),layer),y,0) += DATA(M(ACT(NN),layer),i,0) * (1.0 - DATA(M(ACT(NN),layer),i,0));
             }else{
-                DATA(ZNP(NN),get_index(ZNP(NN),layer,y,0)) += DATA(ACT(NN),get_index(ACT(NN),layer,i,0)) * (- DATA(ACT(NN),get_index(ACT(NN),layer,y,0)));
+                DATA(M(ZNP(NN),layer),y,0) += DATA(M(ACT(NN),layer),i,0) * (- DATA(M(ACT(NN),layer),y,0));
             }
         }
     }
 }
 
 void activation(nNetwork *NN, int layer){
-    affect_values_vx_vxp(ZN(NN),ACT(NN),layer,layer);
+    affect_values_mtrx_to_mtrx(M(ZN(NN),layer),M(ACT(NN),layer));
     switch (FUNC(NN)[layer]){
         case SIG:
-            sigmoid_mtrx(ACT(NN),layer);
+            apply_on_mtrx(M(ACT(NN),layer),sigmoid);
         break;
         case RELU:
-            Relu_mtrx(ACT(NN),layer);
+            apply_on_mtrx(M(ACT(NN),layer),Relu);
         break;
         case SOFT:
             softmax(NN,layer);
@@ -49,38 +49,39 @@ void activation(nNetwork *NN, int layer){
 void derivActivation(nNetwork *NN,int layer){
     switch (FUNC(NN)[layer]){
         case SIG:
-            affect_values_vx_vxp(ACT(NN),ZNP(NN),layer,layer);
-            sigmoidP_mtrx(ZNP(NN),layer);
+            affect_values_mtrx_to_mtrx(M(ACT(NN),layer),M(ZNP(NN),layer));
+            apply_on_mtrx(M(ZNP(NN),layer),sigmoidprime);
         break;
         case RELU:
-            affect_values_vx_vxp(ZN(NN),ZNP(NN),layer,layer);
-            ReluP_mtrx(ZNP(NN),layer);
+            affect_values_mtrx_to_mtrx(M(ZN(NN),layer),M(ZNP(NN),layer));
+            apply_on_mtrx(M(ZNP(NN),layer),Reluprime);
         break;
         case SOFT:
-            init_mtrx(ZNP(NN),layer);
+            init_mtrx(M(ZNP(NN),layer));
             softmaxPrime(NN,layer);
         break;
     }
 }
 
-void predict(mtrx *input,int x, nNetwork *NN){
+void predict(mtrx *input,int y, nNetwork *NN){
     int i;
 #if DEBUGCPT
     printf("inputs");
     print_list_m(input,x);
 #endif
-    affect_values_mx_vxp(input,ACT(NN),x,0);
+    //input is a matix of y row of z params, the first layer of activation is size zx1 this avoids a transposition by affecting directly
+    for (i=0;i<Y(M(ACT(NN),0));i++)M(ACT(NN),0)->data[i][0]=input->data[y][i];
 #if DEBUGCPT
     printf("\ninput copied to first layer\n");
     fflush(stdout);
 #endif
     mtrx* buff,*buff2;
     for (i=0;i<LEN(NN)-1;i++){
-        buff=get_transpose_mtrx(W(NN),i);
-        buff2=dot_m_v(buff,ACT(NN),i);
+        buff=get_transpose(M(W(NN),i));
+        buff2=dot(buff,M(ACT(NN),i));
         //transpose(buff2,0);
-        affect_values_m_vx(buff2,ZN(NN),i+1);
-        add_mtrx_mtrx_v_v(B(NN),ZN(NN),i,i+1);
+        affect_values_mtrx_to_mtrx(buff2,M(ZN(NN),i+1));
+        add_mtrx_to_mtrx(M(B(NN),i),M(ZN(NN),i+1));
         activation(NN,i+1);
 #if DEBUGCPT
         printf("Activation rank %d\n",i+1);
@@ -98,38 +99,38 @@ void predict(mtrx *input,int x, nNetwork *NN){
     }
 }
 
-double sum_cost(double *expected, double *output, int x, int len, int function){
+double sum_cost(double *expected, double **output, int len, int function){
     double local_cost=0;
     for (int i=0;i<len;i++){
-        local_cost+=cost(expected[i],output[i+x],function);
+        local_cost+=cost(expected[i],output[i][0],function);
     }
     return local_cost;
 }
 
-double MSE_cost(double* expected, double* output, int x, int len){
-    return sum_cost(expected, output,x,len,SQR_REG)/len;
+double MSE_cost(double* expected, double** output, int len){
+    return sum_cost(expected, output,len,SQR_REG)/len;
 }
 
-double MAE_cost(double* expected, double* output, int x, int len){
-    return sum_cost(expected, output,x,len,REGRESSION)/len;
+double MAE_cost(double* expected, double** output, int len){
+    return sum_cost(expected, output,len,REGRESSION)/len;
 }
 
-double multiclass_cost(double* expected, double* output, int x, int len){
-    return sum_cost(expected, output,x,len,MULTICLASS);
+double multiclass_cost(double* expected, double** output, int len){
+    return sum_cost(expected, output,len,MULTICLASS);
 }
 
-double multnode_cost(double *expected, mtrx_vector *v, int function){
-    int len=Y(v,X(v)-1),x=total_size(v)-len;
+double multnode_cost(double *expected, mtrx *m, int function){
+    int len=Y(m);
 //outputs are the last len values in output->data
     switch (function){
         case MSE:
-            return MSE_cost(expected,v->data,x,len);
+            return MSE_cost(expected,m->data,len);
             break;
         case MAE:
-            return MAE_cost(expected,v->data,x,len);
+            return MAE_cost(expected,m->data,len);
             break;
         case MULTICLASS:
-            return multiclass_cost(expected,v->data,x,len);
+            return multiclass_cost(expected,m->data,len);
             break;
     }
     return ERR_RETURN;
@@ -139,7 +140,7 @@ double multnode_cost(double *expected, mtrx_vector *v, int function){
 
 void compute_grd(mtrx *expected, nNetwork *NN, int rank, int function){
     int i,x,y;
-    int len=Y(ERR(NN),X(ERR(NN))-1),start=total_size(ERR(NN))-len;
+    int len=Y(M(ERR(NN),X(ERR(NN))-1));
     derivActivation(NN,LEN(NN)-1);
 #if DEBUGGRD
     printf("\nGRD DEBUG\nExpected:\n");
@@ -147,18 +148,12 @@ void compute_grd(mtrx *expected, nNetwork *NN, int rank, int function){
     switch (function){
         case MULTICLASS:
             for (i=0;i<len;i++){
-#if DEBUGGRD
-                printf("%.1f\t",expected[i]);
-#endif
-                DATA(ERR(NN),i+start)=DATA(expected,rank*len+i)-DATA(ACT(NN),i+start);
+                DATA(M(ERR(NN),X(ERR(NN))-1),i,0)=DATA(expected,rank,i)-DATA(M(ACT(NN),X(ACT(NN))-1),i,0);
             }
         break;
         case BINARY:
             for (i=0;i<len;i++){
-#if DEBUGGRD
-                printf("%.1f\t",expected[i]);
-#endif
-                DATA(ERR(NN),i+start)=DATA(ZNP(NN),i+start)*binary_prime(DATA(expected,rank*len+i),DATA(ACT(NN),i+start));
+                DATA(M(ERR(NN),X(ERR(NN))-1),i,0)=DATA(M(ZNP(NN),X(ZNP(NN))-1),i,0)*binary_prime(DATA(expected,rank,i),DATA(M(ACT(NN),X(ACT(NN))-1),i,0));
             }
         break;
         case MSE:
@@ -166,32 +161,22 @@ void compute_grd(mtrx *expected, nNetwork *NN, int rank, int function){
         case REGRESSION:
         case SQR_REG:
             for (i=0;i<len;i++){
-#if DEBUGGRD
-                printf("%.1f\t",expected[i]);
-#endif
-                DATA(ERR(NN),i+start)=DATA(ZNP(NN),i+start)*binary_prime(DATA(expected,rank*len+i),DATA(ACT(NN),i+start));
+                DATA(M(ERR(NN),X(ERR(NN))-1),i,0)=DATA(M(ZNP(NN),X(ZNP(NN))-1),i,0)*(DATA(expected,rank,i)-DATA(M(ACT(NN),X(ACT(NN))-1),i,0));
             }
         break;
     }
-    add_mtrx_mtrx_v_v(ERR(NN),BGRD(NN),X(ERR(NN))-1,X(BGRD(NN))-1);
-#if DEBUGGRD
-    printf("\ngrd computation layer %ld:\n",X(ERR(NN))-1);
-    print_mtrx_v(ACT(NN),X(ACT(NN))-1);
-    print_mtrx_v(ERR(NN),X(ERR(NN))-1);
-    print_mtrx_v(BGRD(NN),X(BGRD(NN))-1);
-#endif
-
+    add_mtrx_to_mtrx(M(ERR(NN),X(ERR(NN))-1),M(BGRD(NN),X(BGRD(NN))-1));
     mtrx *buff,*buff2;
     for (i=LEN(NN)-2;i>-1;i--){ 
         derivActivation(NN,i);
         buff=sum_W_Zn_Deriv(i,NN);
-        affect_values_m_vx(buff,ERR(NN),i);
+        affect_values_mtrx_to_mtrx(buff,M(ERR(NN),i));
         free_mtrx(buff);
-        multiply_mtrx_mtrx(ZNP(NN),ERR(NN),i,i);
-        if (i>0)add_mtrx_mtrx_v_v(ERR(NN),BGRD(NN),i,i-1);
-        buff=get_transpose_mtrx(ERR(NN), i+1);
-        buff2=dot_v_m(ACT(NN), buff,i);
-        add_mtrx_mtrx_m_v(buff2,WGRD(NN),i);
+        multiply_mtrx_by_mtrx(M(ZNP(NN),i),M(ERR(NN),i));
+        if (i>0)add_mtrx_to_mtrx(M(ERR(NN),i),M(BGRD(NN),i-1));
+        buff=get_transpose(M(ERR(NN),i+1));
+        buff2=dot(M(ACT(NN),i), buff);
+        add_mtrx_to_mtrx(buff2,M(WGRD(NN),i));
 #if DEBUGGRD
     printf("\ngrd computation layer %d:\n",i);
     print_mtrx_v(ACT(NN),i);
@@ -208,40 +193,28 @@ void compute_grd(mtrx *expected, nNetwork *NN, int rank, int function){
 
 mtrx* sum_W_Zn_Deriv(int layer, nNetwork* NN){
     mtrx *result;
-    result =dot(W(NN), ERR(NN),layer, layer+1);
+    result =dot(M(W(NN),layer), M(ERR(NN), layer+1));
     return result;
 }
 
 double test(nNetwork *NN, mtrx* test_input,mtrx *test_expected,size_t function){
-    double accuracy[X(test_expected)];
+    double accuracy[Y(test_expected)];
     double max_value_cost=0;
-    double* expected; 
-    for (int i=0;i<X(test_expected);i++){
+    for (int i=0;i<Y(test_expected);i++){
         predict (test_input,i, NN);
-        expected=get_list_from_m(test_expected,i);
-        accuracy[i]=multnode_cost(expected,ACT(NN),function);
+        accuracy[i]=multnode_cost(test_expected->data[i],M(ACT(NN),X(ACT(NN))-1),function);
         if (accuracy[i]>max_value_cost) max_value_cost=accuracy[i];
         if (isnan(accuracy[i])){
             print_vector(W(NN));
             exit(1);
         }
 #define DEBUGTEST false
-#if DEBUGTEST 
-        printf ("Testing\noutput:");
-        print_mtrx(ACT(NN),X(ACT(NN))-1);
-        printf ("\nExpected [");
-        for (int y=0;y<DPTH(NN)[LEN(NN)-1];y++){
-            printf("%.1f ",expected[y]);
-        }
-        printf("]\naccuracy: ");
-    	printf("%f\n",accuracy[i]);
-#endif
-        free(expected);
+
     }
-    for (int i=0;i<X(test_expected);i++){
+    for (int i=0;i<Y(test_expected);i++){
         accuracy[i]/=max_value_cost;
     }
-    return 1-mean_double(accuracy,X(test_expected));
+    return 1-mean_double(accuracy,Y(test_expected));
 }
 
 #define DEBUGB !true
@@ -262,12 +235,12 @@ void batch(mtrx *train_expected, mtrx *train_input, int rank, nNetwork* NN, int 
                 printf("%.1f ",expected[y]);
             }
             printf("]\n");
-            printACT(NN);
+            printACT(NN);     
             printERR(NN);
 #endif
         }
-	    multiply_vector(WGRD(NN),pow_double_int(size_batch,-1));
-        multiply_vector(BGRD(NN),pow_double_int(size_batch,-1));
+	    divide_v(WGRD(NN),size_batch);
+        divide_v(BGRD(NN),size_batch);
 #if DEBUGB
         printGrd(NN);
 #endif
@@ -279,7 +252,7 @@ void train(mtrx *train_expected, mtrx *train_input,mtrx *test_expected, mtrx *te
    printf ("training for %d epochs over batch of size %d\n",epochs, size_batch);
 
     double current_accuracy;
-    size_t size_data=X(train_input), size_test=X(test_input);
+    size_t size_data=Y(train_input), size_test=Y(test_input);
 #if DEBUGCPT
     printf("\tlr: %f\tfunction: %d\tsize_data: %ld\tsize_test: %ld\n",learning_rate,function,size_data,size_test);
     fflush(stdout);

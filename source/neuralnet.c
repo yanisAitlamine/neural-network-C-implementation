@@ -11,6 +11,7 @@ void copy_size_list(size_t *source,size_t* target, size_t len){
 	target[i]=source[i];
     }
 }
+
 #define DEBUGINIT !true
 // Create an object neural network of a given length with given layer lenghts
 nNetwork* createNN(size_t len, size_t* depths,size_t* functions){
@@ -21,18 +22,8 @@ nNetwork* createNN(size_t len, size_t* depths,size_t* functions){
 	nNetwork* NN=(nNetwork*)calloc(1,sizeof(nNetwork));
 	FF(NN)=false;
 	LEN(NN)=len;
-	DPTH(NN)=(size_t*)calloc(len,sizeof(size_t));
-	if (check_malloc(DPTH(NN),"Depths init failed!\n")){
-	    FF(NN)=true;
-	    return NN;
-	}
-	copy_size_list(depths,DPTH(NN),len);
-	FUNC(NN)=calloc(len,sizeof(size_t));
-	if (check_malloc(FUNC(NN),"function init failed!\n")){
-	    FF(NN)=true;
-	    return NN;
-	}
-	copy_size_list(functions,FUNC(NN),len);
+	DPTH(NN)=depths;
+	FUNC(NN)=functions;
 	mtrx_vector* v=create_vector(len-1,depths,&(depths[1]));
 	W(NN)=v;
 	if (check_malloc(W(NN),"Weights init failed!\n")){
@@ -114,10 +105,10 @@ void updateNN(nNetwork* NN, double learning_rate){
     print_vector(WGRD(NN));
     print_vector(W(NN));
 #endif
-    multiply_vector(WGRD(NN),learning_rate);
-    for (int x=0;x<LEN(NN)-1;x++)add_mtrx_mtrx_v_v(WGRD(NN),W(NN),x,x);
-    multiply_vector(BGRD(NN),learning_rate);
-    for (int x=0;x<LEN(NN)-1;x++)add_mtrx_mtrx_v_v(BGRD(NN),B(NN),x,x);
+    multiply_v(WGRD(NN),learning_rate);
+    add_v_to_v(WGRD(NN),W(NN));
+    multiply_v(BGRD(NN),learning_rate);
+    add_v_to_v(BGRD(NN),B(NN));
 #if DEBUGUPDATE
     print_vector(BGRD(NN));
     print_vector(B(NN));
@@ -177,8 +168,8 @@ void freeNN(nNetwork* NN){
     free_vector(ERR(NN));
     free_vector(ZN(NN));
     free_vector(ZNP(NN));
-    free(DPTH(NN));
-    free(FUNC(NN));
+    DPTH(NN)=NULL;
+    FUNC(NN)=NULL;
     free(NN);
 }
 

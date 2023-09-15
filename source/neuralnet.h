@@ -40,8 +40,6 @@ struct nNetwork{
 
 void copy_size_list(size_t *source, size_t *target,size_t len);
 nNetwork* createNN(size_t len, size_t* depths, size_t* functions);
-bool alloc_mtrx(double ***mtrx, size_t len, size_t depth);
-bool alloc_table(double** mtrx, size_t len);
 void fillNN(nNetwork* NN);
 void initGRD(nNetwork* NN);
 void updateNN(nNetwork* NN, double learning_rate);

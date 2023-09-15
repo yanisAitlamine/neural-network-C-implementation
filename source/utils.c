@@ -47,7 +47,7 @@ double regression_cost(double expected, double output){
 }
 
 double sqr_regression(double expected, double output){
-    return pow_double_int(expected-output,2);
+    return pow_double_int(expected-output,2)/2;
 }
 
 // case expected = 0 output=1 handled, would divide by 0
