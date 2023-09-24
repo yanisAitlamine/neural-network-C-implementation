@@ -55,8 +55,9 @@ int main()
 	char* file="NNtest.nn";
 	nNetwork* NN=NULL;
 	if (fopen(file,"r")==NULL){
+		printf ("Creating NN");
 		size_t len=3;
-		size_t depths[]={DP_IN,256,DP_OUT};
+		size_t depths[]={DP_IN,200,DP_OUT};
 		size_t functions[]={RELU,RELU,SOFT};
 		NN = createNN( len, depths,functions);
 		if (NN==NULL||NN->failFlag){
@@ -65,8 +66,7 @@ int main()
 		return 1;
 		}
 		fillNN(NN);
-		printf("Created NN!\n");
-		//printNN(NN);
+		printNN(NN);
 		if (!writeNN (file, NN)){ERROR("failed to write!\n");}
 		freeNN(NN);
 	}
@@ -77,11 +77,11 @@ int main()
 		return 1;
 	}
 	printNN(NN);
-	mtrx* input=create_mtrx(SIZE_DATA,DP_IN);
-	mtrx* expected=create_mtrx(SIZE_DATA,DP_OUT);
+	mtrx* train_input=create_mtrx(SIZE_DATA,DP_IN);
+	mtrx* train_expected=create_mtrx(SIZE_DATA,DP_OUT);
 	shuffle(train_data,SIZE_DATA,DP_IN,DP_OUT,3);	
-	splitData(SIZE_DATA,DP_IN,DP_OUT,train_data,input,expected);
-	normalize(input,255);
+	splitData(SIZE_DATA,DP_IN,DP_OUT,train_data,train_input,train_expected);
+	normalize(train_input,255);
 	printf ("data splitted\n");
 	free_data_mtrx(train_data,SIZE_DATA);
 	mtrx* test_input=create_mtrx(SIZE_TEST,DP_IN);
@@ -89,33 +89,25 @@ int main()
 	splitData(SIZE_TEST,DP_IN,DP_OUT,test_data,test_input,test_expected);
 	normalize(test_input,255);
 	free_data_mtrx(test_data,SIZE_TEST);
-	train(expected ,input,test_expected, test_input, NN, SIZE_BATCH, LR, MULTICLASS, EPOCHS);
+	train(train_expected ,train_input,test_expected, test_input, NN, SIZE_BATCH, LR, MULTICLASS, EPOCHS);
 	
-	double costs[SIZE_TEST],max_cost=0;
-	double* expect; 
-	for (int i=0;i<X(test_expected);i++){
+	double costs[SIZE_TEST];
+	for (int i=0;i<Y(test_expected);i++){
 		predict (test_input,i, NN);
-		//printf("\ninputs:\n");
-		//print_mtrx_v(ACT(NN),0);
-		expect=get_list_from_m(test_expected,i);
-		costs[i]=multnode_cost(expect,ACT(NN),MULTICLASS);
-		if (costs[i]>max_cost)max_cost=costs[i];
+		printf("\ninputs:\n");
+		print_mtrx(M(ACT(NN),0));
+		costs[i]=multnode_cost(test_expected->data[i],ACT(NN)->data[X(ACT(NN))-1],MULTICLASS);
 		printf ("\ntesting\noutput:");
-		print_mtrx_v(ACT(NN),X(ACT(NN))-1);
+		print_mtrx(ACT(NN)->data[X(ACT(NN))-1]);
 		printf ("Expected [");
-		for (int y=0;y<DPTH(NN)[LEN(NN)-1];y++){
-			printf("%.1f ",expect[y]);
+		for (int y=0;y<Z(test_expected);y++){
+			printf("%.1f ",test_expected->data[i][y]);
 		}
 		printf("]\ncosts: ");
 		printf("%f\n",costs[i]);
-		free(expect);
 	}
-	for (int i=0;i<X(test_expected);i++){
-		costs[i]/=max_cost;
-	}
-	printf ("Total accuracy: %f",1-mean_double(costs,X(test_expected)));
-	free_mtrx(input);
-	free_mtrx(expected);
+	free_mtrx(train_input);
+	free_mtrx(train_expected);
 	free_mtrx(test_input);
 	free_mtrx(test_expected);
 	if (!writeNN (file, NN)){ERROR("failed to write");}

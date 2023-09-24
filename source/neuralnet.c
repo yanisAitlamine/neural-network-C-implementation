@@ -22,8 +22,12 @@ nNetwork* createNN(size_t len, size_t* depths,size_t* functions){
 	nNetwork* NN=(nNetwork*)calloc(1,sizeof(nNetwork));
 	FF(NN)=false;
 	LEN(NN)=len;
-	DPTH(NN)=depths;
-	FUNC(NN)=functions;
+	DPTH(NN)=malloc (sizeof(size_t)*len);
+	FUNC(NN)=malloc (sizeof(size_t)*len);
+    for (int i=0;i<LEN(NN);i++){
+        DPTH(NN)[i]=depths[i];
+        FUNC(NN)[i]=functions[i];
+    }
 	mtrx_vector* v=create_vector(len-1,depths,&(depths[1]));
 	W(NN)=v;
 	if (check_malloc(W(NN),"Weights init failed!\n")){
@@ -121,6 +125,9 @@ void updateNN(nNetwork* NN, double learning_rate){
 //Print weights and bias
 void printNN(nNetwork* NN){
     printf ("\nPrinting neural net of size %ld!\n",NN->len);
+    for (int i=0;i<LEN(NN);i++){
+        printf ("depth layer %d: %ld; act func layer %d: %ld\n",i,NN->depths[i],i,NN->functions[i]);
+    }
     print_vector(W(NN));
     print_vector(B(NN));
 }
@@ -168,8 +175,8 @@ void freeNN(nNetwork* NN){
     free_vector(ERR(NN));
     free_vector(ZN(NN));
     free_vector(ZNP(NN));
-    DPTH(NN)=NULL;
-    FUNC(NN)=NULL;
+    free(DPTH(NN));
+    free(FUNC(NN));
     free(NN);
 }
 

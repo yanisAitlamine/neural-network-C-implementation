@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <math.h>
 #include "compute.h"
-#include "utils.h"
 
 
 // Softmax activation function
@@ -14,7 +13,6 @@ void softmax(nNetwork* NN, int layer) {
     for (int i = 0; i < DPTH(NN)[layer]; i++) {
         sum_exp +=  M(ACT(NN),layer)->data[i][0];
     }
-
     divide_mtrx(M(ACT(NN),layer),sum_exp);
 }
 
@@ -33,7 +31,8 @@ void softmaxPrime(nNetwork *NN,int layer) {
 
 void activation(nNetwork *NN, int layer){
     affect_values_mtrx_to_mtrx(M(ZN(NN),layer),M(ACT(NN),layer));
-    switch (FUNC(NN)[layer]){
+    int func=FUNC(NN)[layer];
+    switch (func){
         case SIG:
             apply_on_mtrx(M(ACT(NN),layer),sigmoid);
         break;
@@ -103,20 +102,13 @@ double sum_cost(double *expected, double **output, int len, int function){
     double local_cost=0;
     for (int i=0;i<len;i++){
         local_cost+=cost(expected[i],output[i][0],function);
+        if (isnan(local_cost)){
+            printf("\n%f+= cost(%f,%f,%d)\n",local_cost,expected[i],output[i][0],function);
+            printf("%f=log(%f)\n",log(output[i][0]),output[i][0]);
+            exit(1);
+        }
     }
     return local_cost;
-}
-
-double MSE_cost(double* expected, double** output, int len){
-    return sum_cost(expected, output,len,SQR_REG)/len;
-}
-
-double MAE_cost(double* expected, double** output, int len){
-    return sum_cost(expected, output,len,REGRESSION)/len;
-}
-
-double multiclass_cost(double* expected, double** output, int len){
-    return sum_cost(expected, output,len,MULTICLASS);
 }
 
 double multnode_cost(double *expected, mtrx *m, int function){
@@ -124,13 +116,13 @@ double multnode_cost(double *expected, mtrx *m, int function){
 //outputs are the last len values in output->data
     switch (function){
         case MSE:
-            return MSE_cost(expected,m->data,len);
+            return sum_cost(expected, m->data,len,SQR_REG)/len;
             break;
         case MAE:
-            return MAE_cost(expected,m->data,len);
+            return sum_cost(expected, m->data,len,REGRESSION)/len;
             break;
         case MULTICLASS:
-            return multiclass_cost(expected,m->data,len);
+            return sum_cost(expected, m->data,len,MULTICLASS)/len;
             break;
     }
     return ERR_RETURN;
@@ -197,24 +189,24 @@ mtrx* sum_W_Zn_Deriv(int layer, nNetwork* NN){
     return result;
 }
 
+#define DEBUGTEST true
 double test(nNetwork *NN, mtrx* test_input,mtrx *test_expected,size_t function){
-    double accuracy[Y(test_expected)];
+    double *accuracy = malloc (sizeof(double)*Y(test_expected));
     double max_value_cost=0;
     for (int i=0;i<Y(test_expected);i++){
         predict (test_input,i, NN);
+        //print_mtrx(M(ACT(NN),X(ACT(NN))-1));
         accuracy[i]=multnode_cost(test_expected->data[i],M(ACT(NN),X(ACT(NN))-1),function);
-        if (accuracy[i]>max_value_cost) max_value_cost=accuracy[i];
         if (isnan(accuracy[i])){
+            printf("\n%d\n",i);
             print_vector(W(NN));
             exit(1);
         }
-#define DEBUGTEST false
-
+        if (accuracy[i]>max_value_cost) max_value_cost=accuracy[i];
     }
-    for (int i=0;i<Y(test_expected);i++){
-        accuracy[i]/=max_value_cost;
-    }
-    return 1-mean_double(accuracy,Y(test_expected));
+    double result = Relu(1-mean_double(accuracy,Y(test_expected)));
+    free (accuracy);
+    return result;
 }
 
 #define DEBUGB !true
@@ -231,9 +223,7 @@ void batch(mtrx *train_expected, mtrx *train_input, int rank, nNetwork* NN, int 
             compute_grd(train_expected,NN,rank+i,function);
 #if DEBUGB
             printf ("\n\nBATCH DEBUG\nExpected [");
-            for (int y=0;y<DPTH(NN)[LEN(NN)-1];y++){
-                printf("%.1f ",expected[y]);
-            }
+            printf("%.1f,%.1f",train_expected->data[rank+i][0],train_expected->data[rank+i][1]);
             printf("]\n");
             printACT(NN);     
             printERR(NN);
@@ -241,10 +231,11 @@ void batch(mtrx *train_expected, mtrx *train_input, int rank, nNetwork* NN, int 
         }
 	    divide_v(WGRD(NN),size_batch);
         divide_v(BGRD(NN),size_batch);
+        updateNN(NN,learning_rate);
 #if DEBUGB
         printGrd(NN);
+        printNN(NN);
 #endif
-        updateNN(NN,learning_rate);
 }
 
 #define DEBUGCPT !true
@@ -279,6 +270,7 @@ void train(mtrx *train_expected, mtrx *train_input,mtrx *test_expected, mtrx *te
                 if (y*(epochs/10)==i){
                     current_accuracy=test(NN,test_input,test_expected,function);
                     printf(">epochs %d accuracy: %f\n",i,current_accuracy);
+                    fflush(stdout);
                 }
             }
         }else {

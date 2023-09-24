@@ -51,10 +51,8 @@ mtrx* create_mtrx(size_t len, size_t depth){
             // cleanup on failure
             for (size_t j = 0; j < i; j++) {
                 free(new_mtrx->data[j]);
-                free(new_mtrx->cd_data[j]);
             }
             free(new_mtrx->data);
-            free(new_mtrx->cd_data);
             free(new_mtrx);
             return NULL;
         }
@@ -200,7 +198,7 @@ void add_mtrx_to_mtrx(mtrx *m, mtrx *mp){
         return;
     }
     for (int i=0;i<Y(m);i++){
-        for (int j=0;Z(m);j++){
+        for (int j=0;j<Z(m);j++){
             mp->data[i][j]+=m->data[i][j];
          }
     }
@@ -219,13 +217,13 @@ void multiply_mtrx(mtrx *m,double r){
 }
 
 void divide_v(mtrx_vector *v,double r){
-    for (int i=0;i<X(v);i++)multiply_mtrx(M(v,i),r);
+    for (int i=0;i<X(v);i++)divide_mtrx(M(v,i),r);
 }
 
-void divide_mtrx(mtrx *m,double r){
+void divide_mtrx(mtrx *m, double r){
     for (int i=0;i<Y(m);i++){
         for (int j=0;j<Z(m);j++){
-            m->data[i][j]*=r;
+            m->data[i][j]/=r;
          }
     }
 }
@@ -236,7 +234,7 @@ void multiply_mtrx_by_mtrx(mtrx *m, mtrx *mp){
         return;
     }
     for (int i=0;i<Y(m);i++){
-        for (int j=0;Z(m);j++){
+        for (int j=0;j<Z(m);j++){
             mp->data[i][j]*=m->data[i][j];
          }
     }
@@ -244,7 +242,7 @@ void multiply_mtrx_by_mtrx(mtrx *m, mtrx *mp){
 
 void apply_on_mtrx(mtrx *m,double (*func)(double)){
     for (int i=0;i<Y(m);i++){
-        for (int j=0;Z(m);j++){
+        for (int j=0;j<Z(m);j++){
             m->data[i][j]=(*func)(m->data[i][j]);
          }
     }
@@ -256,7 +254,7 @@ void apply_from_mtrx_into(mtrx *m,mtrx *mp,double (*func)(double)){
         return;
     }
     for (int i=0;i<Y(m);i++){
-        for (int j=0;Z(m);j++){
+        for (int j=0;j<Z(m);j++){
             mp->data[i][j]=(*func)(m->data[i][j]);
          }
     }
@@ -305,7 +303,7 @@ void affect_values_mtrx_to_mtrx(mtrx *m,mtrx *mp){
         return;
     }
     for (int i=0;i<Y(m);i++){
-        for (int j=0;Z(m);j++){
+        for (int j=0;j<Z(m);j++){
             mp->data[i][j]=m->data[i][j];
          }
     }
@@ -319,10 +317,10 @@ void affect_values_v_to_v(mtrx_vector *v,mtrx_vector *vp){
     for (int i=0;i<X(v);i++)affect_values_mtrx_to_mtrx(M(v,i),M(vp,i));
 }
 
-#define DEBUGDOT true
+#define DEBUGDOT !true
 //does dot operation between 2 matrixes m into mp
 mtrx* dot(mtrx *m, mtrx *mp){
-    if (Y(m)!=Z(mp)||Y(mp)!=Z(m)){
+    if (Y(mp)!=Z(m)){
         printf ("Invalid dimensions for dot!\n");
         return NULL;
     }
@@ -332,7 +330,7 @@ mtrx* dot(mtrx *m, mtrx *mp){
     }
     for (int i=0;i<Y(m);i++){
         for (int j=0;j<Y(mp);j++){
-            for (int k;k<Z(mp);k++){
+            for (int k=0;k<Z(mp);k++){
                 result->data[i][k]+=m->data[i][j]*mp->data[j][k];
 #if DEBUGDOT
     printf ("Dotting result[%d][%d]=%f!\n",i,k,result->data[i][k]);

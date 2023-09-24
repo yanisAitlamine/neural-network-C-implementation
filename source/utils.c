@@ -69,13 +69,14 @@ double binary_cost(double expected, double output){
 double cost (double expected, double output, int function){
     switch(function){
         case REGRESSION:
-            return regression_cost(expected,output);
+            return expected-output;
         break;
         case SQR_REG:
-            return sqr_regression(expected,output);
+            return pow_double_int(expected-output,2)/2;
             break;
         case BINARY:
-            return binary_cost(expected,output);
+            if(output==0)output=0.0000001;
+            return -((expected*log(output))+((1-expected)*log(1-output)));
         break;
         case MULTICLASS:
             if(output==0)output=0.0000001;

@@ -13,7 +13,7 @@
 #define DP_IN 6
 #define DP_OUT 2
 #define LR 0.01
-#define EPOCHS 1000
+#define EPOCHS 10000
 #define SIZE_BATCH 1
 #define TRAIN true
 #define TEST false
@@ -64,6 +64,7 @@ int main()
 	char* file="NNtest.nn";
 	nNetwork* NN=NULL;
 	if (fopen(file,"r")==NULL){
+		printf ("Creating NN");
 		size_t len=3;
 		size_t depths[]={DP_IN,3,DP_OUT};
 		size_t functions[]={RELU,RELU,SOFT};
@@ -74,7 +75,6 @@ int main()
 		return 1;
 		}
 		fillNN(NN);
-		printf("filled correctly!\n");
 		printNN(NN);
 		if (!writeNN (file, NN)){ERROR("failed to write!\n");}
 		freeNN(NN);
@@ -102,12 +102,12 @@ int main()
 	for (int i=0;i<Y(test_expected);i++){
 		predict (test_input,i, NN);
 		printf("\ninputs:\n");
-		print_vector(ACT(NN));
+		print_mtrx(M(ACT(NN),0));
 		costs[i]=multnode_cost(test_expected->data[i],ACT(NN)->data[X(ACT(NN))-1],MULTICLASS);
 		printf ("\ntesting\noutput:");
 		print_mtrx(ACT(NN)->data[X(ACT(NN))-1]);
 		printf ("Expected [");
-		for (int y=0;y<DPTH(NN)[LEN(NN)-1];y++){
+		for (int y=0;y<Z(test_expected);y++){
 			printf("%.1f ",test_expected->data[i][y]);
 		}
 		printf("]\ncosts: ");
