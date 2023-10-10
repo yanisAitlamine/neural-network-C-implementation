@@ -12,12 +12,12 @@
 #define SIZE_DATA 10000
 #define DP_IN 28*28
 #define DP_OUT 10
-#define LR 0.001
-#define EPOCHS 10
-#define SIZE_BATCH 50
+#define LR 0.0001
+#define EPOCHS 100
+#define SIZE_BATCH 10
 #define TRAIN true
 #define TEST false
-#define SIZE_TEST 1000
+#define SIZE_TEST 100
 
 int main()
 {
@@ -94,8 +94,8 @@ int main()
 	double costs[SIZE_TEST];
 	for (int i=0;i<Y(test_expected);i++){
 		predict (test_input,i, NN);
-		printf("\ninputs:\n");
-		print_mtrx(M(ACT(NN),0));
+		//printf("\ninputs:\n");
+		//print_mtrx(M(ACT(NN),0));
 		costs[i]=multnode_cost(test_expected->data[i],ACT(NN)->data[X(ACT(NN))-1],MULTICLASS);
 		printf ("\ntesting\noutput:");
 		print_mtrx(ACT(NN)->data[X(ACT(NN))-1]);

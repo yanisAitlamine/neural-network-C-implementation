@@ -189,23 +189,34 @@ mtrx* sum_W_Zn_Deriv(int layer, nNetwork* NN){
     return result;
 }
 
-#define DEBUGTEST true
+#define DEBUGTEST !true
 double test(nNetwork *NN, mtrx* test_input,mtrx *test_expected,size_t function){
-    double *accuracy = malloc (sizeof(double)*Y(test_expected));
-    double max_value_cost=0;
+    double *costs = malloc (sizeof(double)*Y(test_expected));
     for (int i=0;i<Y(test_expected);i++){
         predict (test_input,i, NN);
         //print_mtrx(M(ACT(NN),X(ACT(NN))-1));
-        accuracy[i]=multnode_cost(test_expected->data[i],M(ACT(NN),X(ACT(NN))-1),function);
-        if (isnan(accuracy[i])){
+        costs[i]=multnode_cost(test_expected->data[i],M(ACT(NN),X(ACT(NN))-1),function);
+        if (costs[i]>1) costs[i]=1;
+#if DEBUGTEST
+    print_mtrx(ACT(NN)->data[X(ACT(NN))-1]);
+	printf ("Expected [");
+	for (int y=0;y<Z(test_expected);y++){
+		printf("%.1f ",test_expected->data[i][y]);
+	}
+	printf("]\ncost %d: %f\n",i,costs[i]);
+#endif
+        if (isnan(costs[i])){
             printf("\n%d\n",i);
             print_vector(W(NN));
             exit(1);
         }
-        if (accuracy[i]>max_value_cost) max_value_cost=accuracy[i];
     }
-    double result = Relu(1-mean_double(accuracy,Y(test_expected)));
-    free (accuracy);
+    double mean_cost=mean_double(costs,Y(test_expected));
+#if DEBUGTEST
+    printf ("mean cost: %f\n",mean_cost);
+#endif
+    double result = 1-mean_cost;
+    free (costs);
     return result;
 }
 
