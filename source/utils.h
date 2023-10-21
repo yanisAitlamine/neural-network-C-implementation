@@ -9,6 +9,7 @@
 #define MSE 5
 #define PRODUCT 6
 #define ERR_RETURN 10000000000000000.0
+#include <stdlib.h>
 #include <math.h>
 
 double pow_double_int(double x, int n);
