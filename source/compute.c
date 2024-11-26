@@ -1,11 +1,16 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
-#include "compute.h"
+/*
+ * compute.c
+ * Purpose: Implements compute-related functionality.
+ * Auto-commented by GPT.
+ */
+#include <stdio.h> // Include library for required functionality.
+#include <stdlib.h> // Include library for required functionality.
+#include <math.h> // Include library for required functionality.
+#include "compute.h" // Include library for required functionality.
 
 
 // Softmax activation function
-void softmax(nNetwork* NN, int layer) {
+void softmax(nNetwork* NN, int layer) { // Function definition.
     double max_val = max_mtrx(M(ZN(NN),layer));
     double sum_exp = 0.0;
     add_to_mtrx(M(ACT(NN),layer),-max_val); 
@@ -17,7 +22,7 @@ void softmax(nNetwork* NN, int layer) {
 }
 
 // Derivative of softmax
-void softmaxPrime(nNetwork *NN,int layer) {
+void softmaxPrime(nNetwork *NN,int layer) { // Function definition.
     for (int y=0;y<Y(M(ZNP(NN),layer));y++){
         for (int i = 0; i < DPTH(NN)[layer]; i++) {
             if (i==y) {
@@ -29,7 +34,7 @@ void softmaxPrime(nNetwork *NN,int layer) {
     }
 }
 
-void activation(nNetwork *NN, int layer){
+void activation(nNetwork *NN, int layer){ // Function definition.
     affect_values_mtrx_to_mtrx(M(ZN(NN),layer),M(ACT(NN),layer));
     int func=FUNC(NN)[layer];
     switch (func){
@@ -45,7 +50,7 @@ void activation(nNetwork *NN, int layer){
     }
 }
 
-void derivActivation(nNetwork *NN,int layer){
+void derivActivation(nNetwork *NN,int layer){ // Function definition.
     switch (FUNC(NN)[layer]){
         case SIG:
             affect_values_mtrx_to_mtrx(M(ACT(NN),layer),M(ZNP(NN),layer));
@@ -62,7 +67,7 @@ void derivActivation(nNetwork *NN,int layer){
     }
 }
 
-void predict(mtrx *input,int y, nNetwork *NN){
+void predict(mtrx *input,int y, nNetwork *NN){ // Function definition.
     int i;
 #if DEBUGCPT
     printf("inputs");
@@ -130,7 +135,7 @@ double multnode_cost(double *expected, mtrx *m, int function){
 
 #define DEBUGGRD !true
 
-void compute_grd(mtrx *expected, nNetwork *NN, int rank, int function){
+void compute_grd(mtrx *expected, nNetwork *NN, int rank, int function){ // Function definition.
     int i,x,y;
     int len=Y(M(ERR(NN),X(ERR(NN))-1));
     derivActivation(NN,LEN(NN)-1);
@@ -222,7 +227,7 @@ double test(nNetwork *NN, mtrx* test_input,mtrx *test_expected,size_t function){
 
 #define DEBUGB !true
 
-void batch(mtrx *train_expected, mtrx *train_input, int rank, nNetwork* NN, int size_batch, double learning_rate, int function){
+void batch(mtrx *train_expected, mtrx *train_input, int rank, nNetwork* NN, int size_batch, double learning_rate, int function){ // Function definition.
     init_vector(WGRD(NN));
     init_vector(BGRD(NN));
 	for  (int i=0;i<size_batch;i++){
@@ -250,7 +255,7 @@ void batch(mtrx *train_expected, mtrx *train_input, int rank, nNetwork* NN, int 
 }
 
 #define DEBUGCPT !true
-void train(mtrx *train_expected, mtrx *train_input,mtrx *test_expected, mtrx *test_input, nNetwork* NN, int size_batch, double learning_rate, int function, int epochs){
+void train(mtrx *train_expected, mtrx *train_input,mtrx *test_expected, mtrx *test_input, nNetwork* NN, int size_batch, double learning_rate, int function, int epochs){ // Function definition.
    printf ("training for %d epochs over batch of size %d\n",epochs, size_batch);
 
     double current_accuracy;

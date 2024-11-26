@@ -1,14 +1,19 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <stddef.h>
-#include <string.h>
-#include <time.h>
-#include <math.h>
-#include "../source/utils.h"
-#include "../source/neuralnet.h"
-#include "../source/errors.h"
-#include "../source/in_outNN.h"
-#include "../source/compute.h"
+/*
+ * mnist.c
+ * Purpose: Implements mnist-related functionality.
+ * Auto-commented by GPT.
+ */
+#include <stdio.h> // Include library for required functionality.
+#include <stdlib.h> // Include library for required functionality.
+#include <stddef.h> // Include library for required functionality.
+#include <string.h> // Include library for required functionality.
+#include <time.h> // Include library for required functionality.
+#include <math.h> // Include library for required functionality.
+#include "../source/utils.h" // Include library for required functionality.
+#include "../source/neuralnet.h" // Include library for required functionality.
+#include "../source/errors.h" // Include library for required functionality.
+#include "../source/in_outNN.h" // Include library for required functionality.
+#include "../source/compute.h" // Include library for required functionality.
 #define SIZE_DATA 10000
 #define DP_IN 28*28
 #define DP_OUT 10

@@ -1,7 +1,12 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include "utils.h"
-#include "mtrx.h"
+/*
+ * mtrx.c
+ * Purpose: Implements mtrx-related functionality.
+ * Auto-commented by GPT.
+ */
+#include <stdio.h> // Include library for required functionality.
+#include <stdlib.h> // Include library for required functionality.
+#include "utils.h" // Include library for required functionality.
+#include "mtrx.h" // Include library for required functionality.
 
 #define DEBUGINIT !true
 //create vector
@@ -60,7 +65,7 @@ mtrx* create_mtrx(size_t len, size_t depth){
     return new_mtrx;
 }
 //free vector
-void free_vector(mtrx_vector *v){
+void free_vector(mtrx_vector *v){ // Function definition.
     if(v==NULL)return;
     if (v->data!=NULL){
         for (int i=0;i<X(v);i++)free_mtrx(v->data[i]);
@@ -70,7 +75,7 @@ void free_vector(mtrx_vector *v){
 }
 
 //free mtrx
-void free_mtrx(mtrx *v){
+void free_mtrx(mtrx *v){ // Function definition.
     int i;
     if(v==NULL)return;
     if (v->data!=NULL){
@@ -84,7 +89,7 @@ void free_mtrx(mtrx *v){
     free(v);
 }
 
-void write_list_in_mtrx(double* list, mtrx *m, int rank, size_t size_list){
+void write_list_in_mtrx(double* list, mtrx *m, int rank, size_t size_list){ // Function definition.
     if (size_list!=Z(m)){
         printf("Can't write list to mtrx %ld!=%ld!\n",Z(m),size_list);
         return;
@@ -95,7 +100,7 @@ void write_list_in_mtrx(double* list, mtrx *m, int rank, size_t size_list){
 }
 
 //split data set if entries and expected are a simple list of activations
-void splitData(int num_obj,size_t len_in, size_t len_out,double ***data, mtrx* input, mtrx* expected){
+void splitData(int num_obj,size_t len_in, size_t len_out,double ***data, mtrx* input, mtrx* expected){ // Function definition.
     if (num_obj!=Y(input)||num_obj!=Y(expected)){
         printf ("Sizes not correct num_obj=%d, y input=%ld, y expected=%ld",num_obj,Y(input),Y(expected));
         return;
@@ -107,7 +112,7 @@ void splitData(int num_obj,size_t len_in, size_t len_out,double ***data, mtrx* i
 }
 
 //print the whole vector
-void print_vector(mtrx_vector *v){
+void print_vector(mtrx_vector *v){ // Function definition.
     for (int i=0;i<X(v);i++){
         printf("\n");
         print_mtrx(M(v,i));
@@ -115,7 +120,7 @@ void print_vector(mtrx_vector *v){
     printf("\n");
 }
 //print the matrix
-void print_mtrx(mtrx *m){
+void print_mtrx(mtrx *m){ // Function definition.
     for (int i=0;i<Z(m);i++){
         for (int j=0;j<Y(m);j++){
             printf("%f ",DATA(m,j,i));
@@ -126,7 +131,7 @@ void print_mtrx(mtrx *m){
 }
 
 //print the list at x
-void print_list_m(mtrx *m,int x){
+void print_list_m(mtrx *m,int x){ // Function definition.
     printf("\n");
     for (int j=0;j<Z(m);j++){
         printf("mtrx[%ld]:%f ",x*Z(m)+j,DATA(m,x,j));
@@ -134,13 +139,13 @@ void print_list_m(mtrx *m,int x){
     printf("\n");
 }
 
-void init_vector(mtrx_vector *v){
+void init_vector(mtrx_vector *v){ // Function definition.
     for (int i=0;i<X(v);i++){
         init_mtrx(M(v,i));
     }
 }
 
-void init_mtrx(mtrx *m){
+void init_mtrx(mtrx *m){ // Function definition.
     for (int i=0;i<Y(m);i++){
         for (int j=0;j<Z(m);j++){
             DATA(m,i,j)=0;
@@ -148,13 +153,13 @@ void init_mtrx(mtrx *m){
     }
 }
 
-void init_vector_rand(mtrx_vector *v){
+void init_vector_rand(mtrx_vector *v){ // Function definition.
     for (int i=0;i<X(v);i++){
         init_mtrx_rand(M(v,i));
     }
 }
 
-void init_mtrx_rand(mtrx *m){
+void init_mtrx_rand(mtrx *m){ // Function definition.
     for (int i=0;i<Y(m);i++){
         for (int j=0;j<Z(m);j++){
             DATA(m,i,j)=rand_decimal();
@@ -162,7 +167,7 @@ void init_mtrx_rand(mtrx *m){
     }
 }
 
-void normalize(mtrx* input, double max){
+void normalize(mtrx* input, double max){ // Function definition.
     int i,j;
     for (i=0;i<Y(input);i++){
         for (j=0;j<Z(input);j++){
@@ -171,11 +176,11 @@ void normalize(mtrx* input, double max){
     }
 }
 
-void add_to_v(mtrx_vector *v,double r){
+void add_to_v(mtrx_vector *v,double r){ // Function definition.
     for (int i=0;i<X(v);i++)add_to_mtrx(M(v,i),r);
 }
 
-void add_to_mtrx(mtrx *m,double r){
+void add_to_mtrx(mtrx *m,double r){ // Function definition.
     for (int i=0;i<Y(m);i++){
         for (int j=0;j<Z(m);j++){
             m->data[i][j]+=r;
@@ -184,7 +189,7 @@ void add_to_mtrx(mtrx *m,double r){
 }
 
 //add matrix at position x to the one at xp if they have the same dimmension
-void add_v_to_v(mtrx_vector *v, mtrx_vector *vp){
+void add_v_to_v(mtrx_vector *v, mtrx_vector *vp){ // Function definition.
     if (X(v)!=X(vp)){
         printf ("Adding two vectors with different len!\n");
         return;
@@ -192,7 +197,7 @@ void add_v_to_v(mtrx_vector *v, mtrx_vector *vp){
     for (int i=0;i<X(v);i++)add_mtrx_to_mtrx(M(v,i),M(vp,i));
 }
 
-void add_mtrx_to_mtrx(mtrx *m, mtrx *mp){
+void add_mtrx_to_mtrx(mtrx *m, mtrx *mp){ // Function definition.
     if (Y(m)!=Y(mp)||Z(m)!=Z(mp)){
         ERROR("Matrix sizes incompatible for addition!\n");
         return;
@@ -204,11 +209,11 @@ void add_mtrx_to_mtrx(mtrx *m, mtrx *mp){
     }
 }
 
-void multiply_v(mtrx_vector *v,double r){
+void multiply_v(mtrx_vector *v,double r){ // Function definition.
     for (int i=0;i<X(v);i++)multiply_mtrx(M(v,i),r);
 }
 
-void multiply_mtrx(mtrx *m,double r){
+void multiply_mtrx(mtrx *m,double r){ // Function definition.
     for (int i=0;i<Y(m);i++){
         for (int j=0;j<Z(m);j++){
             m->data[i][j]*=r;
@@ -216,11 +221,11 @@ void multiply_mtrx(mtrx *m,double r){
     }
 }
 
-void divide_v(mtrx_vector *v,double r){
+void divide_v(mtrx_vector *v,double r){ // Function definition.
     for (int i=0;i<X(v);i++)divide_mtrx(M(v,i),r);
 }
 
-void divide_mtrx(mtrx *m, double r){
+void divide_mtrx(mtrx *m, double r){ // Function definition.
     for (int i=0;i<Y(m);i++){
         for (int j=0;j<Z(m);j++){
             m->data[i][j]/=r;
@@ -228,7 +233,7 @@ void divide_mtrx(mtrx *m, double r){
     }
 }
 
-void multiply_mtrx_by_mtrx(mtrx *m, mtrx *mp){
+void multiply_mtrx_by_mtrx(mtrx *m, mtrx *mp){ // Function definition.
     if (Y(m)!=Y(mp)||Z(m)!=Z(mp)){
         ERROR("Matrix sizes incompatible for multiplication!\n");
         return;
@@ -240,7 +245,7 @@ void multiply_mtrx_by_mtrx(mtrx *m, mtrx *mp){
     }
 }
 
-void apply_on_mtrx(mtrx *m,double (*func)(double)){
+void apply_on_mtrx(mtrx *m,double (*func)(double)){ // Function definition.
     for (int i=0;i<Y(m);i++){
         for (int j=0;j<Z(m);j++){
             m->data[i][j]=(*func)(m->data[i][j]);
@@ -248,7 +253,7 @@ void apply_on_mtrx(mtrx *m,double (*func)(double)){
     }
 }
 
-void apply_from_mtrx_into(mtrx *m,mtrx *mp,double (*func)(double)){
+void apply_from_mtrx_into(mtrx *m,mtrx *mp,double (*func)(double)){ // Function definition.
     if (Y(m)!=Y(mp)||Z(m)!=Z(mp)){
         ERROR("Matrix sizes incompatible for assignment!\n");
         return;
@@ -297,7 +302,7 @@ mtrx* get_transpose(mtrx *m){
     return result;
 }
 
-void affect_values_mtrx_to_mtrx(mtrx *m,mtrx *mp){ 
+void affect_values_mtrx_to_mtrx(mtrx *m,mtrx *mp){  // Function definition.
     if (Y(m)!=Y(mp)||Z(m)!=Z(mp)){
         ERROR("Matrix sizes incompatible for multiplication!\n");
         return;
@@ -309,7 +314,7 @@ void affect_values_mtrx_to_mtrx(mtrx *m,mtrx *mp){
     }
 }
 
-void affect_values_v_to_v(mtrx_vector *v,mtrx_vector *vp){
+void affect_values_v_to_v(mtrx_vector *v,mtrx_vector *vp){ // Function definition.
     if (X(v)!=X(vp)){
         printf ("Affecting two vectors with different len!\n");
         return;

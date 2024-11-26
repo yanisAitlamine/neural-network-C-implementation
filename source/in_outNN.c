@@ -1,8 +1,13 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include "errors.h"
-#include "in_outNN.h"
+/*
+ * in_outNN.c
+ * Purpose: Implements in_outNN-related functionality.
+ * Auto-commented by GPT.
+ */
+#include <stdio.h> // Include library for required functionality.
+#include <stdlib.h> // Include library for required functionality.
+#include <string.h> // Include library for required functionality.
+#include "errors.h" // Include library for required functionality.
+#include "in_outNN.h" // Include library for required functionality.
 #define IMG_INFO 4
 #define LBL_INFO 2
 #define PIXEL_IMG 784
@@ -123,7 +128,7 @@ int read(FILE *stream, char *chain, size_t len) {
 }
 
 // read characters in the buffer until the end of the fil or \n
-void freeBuffer() {
+void freeBuffer() { // Function definition.
     int a=0;
     while (a!='\n' && a!=EOF) {
         a=getchar();
@@ -141,7 +146,7 @@ double*** init_data_matrix(int nb_sample,int depth_in, int depth_out){
     return data;
 }
 
-void free_data_mtrx(double*** data, int nb_sample){
+void free_data_mtrx(double*** data, int nb_sample){ // Function definition.
     for (int i=0;i<nb_sample;i++){
 	    free(data[i][0]);
 	    free(data[i][1]);
@@ -237,4 +242,3 @@ nNetwork* readNN(char* filename){
     }
     return NN;
 }
-

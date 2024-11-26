@@ -1,3 +1,8 @@
+/*
+ * utils.h
+ * Purpose: Implements utils-related functionality.
+ * Auto-commented by GPT.
+ */
 #ifndef UT
 #define UT
 #define EULER_NUMBER 2.71828182845904523536
@@ -9,8 +14,8 @@
 #define MSE 5
 #define PRODUCT 6
 #define ERR_RETURN 10000000000000000.0
-#include <stdlib.h>
-#include <math.h>
+#include <stdlib.h> // Include library for required functionality.
+#include <math.h> // Include library for required functionality.
 
 double pow_double_int(double x, int n);
 double rand_decimal();
@@ -26,7 +31,7 @@ double binary_cost(double expected, double output);
 double cost (double expected, double output, int function);
 double sum_double(double* data, int size_data);
 double mean_double(double* data,int size_data);
-void swapTables(double ***data,int base,int target,int depth_in,int depth_out);
-void shuffle(double*** data,int len,int depth_in,int depth_out,int rounds);
+void swapTables(double ***data,int base,int target,int depth_in,int depth_out); // Function definition.
+void shuffle(double*** data,int len,int depth_in,int depth_out,int rounds); // Function definition.
 
 #endif

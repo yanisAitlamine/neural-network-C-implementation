@@ -1,7 +1,12 @@
+/*
+ * neuralnet.h
+ * Purpose: Implements neuralnet-related functionality.
+ * Auto-commented by GPT.
+ */
 #ifndef NN_H
 #define NN_H
-#include <stdbool.h>
-#include "mtrx.h"
+#include <stdbool.h> // Include library for required functionality.
+#include "mtrx.h" // Include library for required functionality.
 #define DEBUG false
 
 #define SIG 4
@@ -38,16 +43,16 @@ struct nNetwork{
 
 };
 
-void copy_size_list(size_t *source, size_t *target,size_t len);
+void copy_size_list(size_t *source, size_t *target,size_t len); // Function definition.
 nNetwork* createNN(size_t len, size_t* depths, size_t* functions);
-void fillNN(nNetwork* NN);
-void initGRD(nNetwork* NN);
-void updateNN(nNetwork* NN, double learning_rate);
-void printNN(nNetwork* NN);
-void printGrd(nNetwork* NN);
-void printACT(nNetwork* NN);
-void printZN(nNetwork* NN);
-void printZNP(nNetwork* NN);
-void printERR(nNetwork* NN);
-void freeNN (nNetwork* NN);
+void fillNN(nNetwork* NN); // Function definition.
+void initGRD(nNetwork* NN); // Function definition.
+void updateNN(nNetwork* NN, double learning_rate); // Function definition.
+void printNN(nNetwork* NN); // Function definition.
+void printGrd(nNetwork* NN); // Function definition.
+void printACT(nNetwork* NN); // Function definition.
+void printZN(nNetwork* NN); // Function definition.
+void printZNP(nNetwork* NN); // Function definition.
+void printERR(nNetwork* NN); // Function definition.
+void freeNN (nNetwork* NN); // Function definition.
 #endif

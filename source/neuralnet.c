@@ -1,12 +1,17 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <stddef.h>
-#include <math.h>
-#include "errors.h"
-#include "neuralnet.h"
+/*
+ * neuralnet.c
+ * Purpose: Implements neuralnet-related functionality.
+ * Auto-commented by GPT.
+ */
+#include <stdio.h> // Include library for required functionality.
+#include <stdlib.h> // Include library for required functionality.
+#include <stddef.h> // Include library for required functionality.
+#include <math.h> // Include library for required functionality.
+#include "errors.h" // Include library for required functionality.
+#include "neuralnet.h" // Include library for required functionality.
 
 
-void copy_size_list(size_t *source,size_t* target, size_t len){
+void copy_size_list(size_t *source,size_t* target, size_t len){ // Function definition.
     for (int i=0;i<len; i++){
 	target[i]=source[i];
     }
@@ -80,7 +85,7 @@ nNetwork* createNN(size_t len, size_t* depths,size_t* functions){
 }
 
 //Initialize weights and bias with random numbers
-void fillNN(nNetwork* NN){
+void fillNN(nNetwork* NN){ // Function definition.
     init_vector_rand(W(NN));
     init_vector_rand(B(NN));
     init_vector(WGRD(NN));
@@ -92,14 +97,14 @@ void fillNN(nNetwork* NN){
 }
 
 //Initialize weights and bias with random numbers
-void initGRD(nNetwork* NN){
+void initGRD(nNetwork* NN){ // Function definition.
     init_vector(WGRD(NN));
     init_vector(BGRD(NN));
 }
 
 #define DEBUGUPDATE !true
 //Update weights and bias with Grd and learing rate
-void updateNN(nNetwork* NN, double learning_rate){
+void updateNN(nNetwork* NN, double learning_rate){ // Function definition.
 #if DEBUGUPDATE
     print_vector(ACT(NN));
     print_vector(ERR(NN));
@@ -123,7 +128,7 @@ void updateNN(nNetwork* NN, double learning_rate){
 
 
 //Print weights and bias
-void printNN(nNetwork* NN){
+void printNN(nNetwork* NN){ // Function definition.
     printf ("\nPrinting neural net of size %ld!\n",NN->len);
     for (int i=0;i<LEN(NN);i++){
         printf ("depth layer %d: %ld; act func layer %d: %ld\n",i,NN->depths[i],i,NN->functions[i]);
@@ -134,35 +139,35 @@ void printNN(nNetwork* NN){
 
 
 //Print weights and bias Grd
-void printGrd(nNetwork* NN){
+void printGrd(nNetwork* NN){ // Function definition.
     printf ("\nPrinting neural net Grd of size %ld!\n",LEN(NN));
     print_vector(WGRD(NN));
     print_vector(BGRD(NN)); 
 }
 
-void printACT(nNetwork* NN){
+void printACT(nNetwork* NN){ // Function definition.
     printf ("\nPrinting neural net activations of size %ld!\n",NN->len);
     print_vector(ACT(NN));
 }
 
-void printERR(nNetwork* NN){
+void printERR(nNetwork* NN){ // Function definition.
     printf ("\nPrinting neural net ERROR of size %ld!\n",NN->len);
     print_vector(ERR(NN));
 }
 
-void printZN(nNetwork* NN){
+void printZN(nNetwork* NN){ // Function definition.
     printf ("\nPrinting neural net ZN of size %ld!\n",NN->len);
     print_vector(ZN(NN));
 }
 
-void printZNP(nNetwork* NN){
+void printZNP(nNetwork* NN){ // Function definition.
     printf ("\nPrinting neural net ZNP of size %ld!\n",NN->len);
     print_vector(ZNP(NN));
 }
 
 #define DEBUGFREE false
 // Free a neural network object
-void freeNN(nNetwork* NN){
+void freeNN(nNetwork* NN){ // Function definition.
     if (NN==NULL){return;}
 #if DEBUGFREE
     printf ("Free network of size %ld!\n",LEN(NN));
@@ -179,4 +184,3 @@ void freeNN(nNetwork* NN){
     free(FUNC(NN));
     free(NN);
 }
-

@@ -1,8 +1,13 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <string.h>
-#include "utils.h"
+/*
+ * utils.c
+ * Purpose: Implements utils-related functionality.
+ * Auto-commented by GPT.
+ */
+#include <stdio.h> // Include library for required functionality.
+#include <stdlib.h> // Include library for required functionality.
+#include <stdbool.h> // Include library for required functionality.
+#include <string.h> // Include library for required functionality.
+#include "utils.h" // Include library for required functionality.
 
 double pow_double_int(double x, int n){
     double result = 1.0;
@@ -97,7 +102,7 @@ double mean_double(double* data,int size_data){
     return sum_double(data,size_data)/size_data;
 }
 
-void swapTables(double ***data,int base,int target,int depth_in,int depth_out){
+void swapTables(double ***data,int base,int target,int depth_in,int depth_out){ // Function definition.
     double buffer;
     for (int i=0;i<depth_in;i++){
         buffer=data[base][0][i];
@@ -112,11 +117,10 @@ void swapTables(double ***data,int base,int target,int depth_in,int depth_out){
 }
 
 
-void shuffle(double*** data,int len,int depth_in,int depth_out,int rounds){
+void shuffle(double*** data,int len,int depth_in,int depth_out,int rounds){ // Function definition.
     for (int a=0;a<rounds;a++){
         for (int i=0;i<len;i++){
             swapTables(data,i,(len-1)*(rand_decimal()),depth_in,depth_out);
         }
     }
 }
-
