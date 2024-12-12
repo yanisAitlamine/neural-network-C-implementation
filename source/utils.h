@@ -9,7 +9,13 @@
 #define MSE 5
 #define PRODUCT 6
 #define ERR_RETURN 10000000000000000.0
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <stddef.h>
 #include <math.h>
+#include <string.h>
+#include "errors.h"
 
 double pow_double_int(double x, int n);
 double rand_decimal();

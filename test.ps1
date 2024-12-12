@@ -8,7 +8,7 @@ if (!$PSBoundParameters.ContainsKey('arg1')){
     exit 1
 }
 if (!$PSBoundParameters.ContainsKey('arg2')){
-    echo "Please provide the name of the resulting executable."
+    echo "Please provide the name of main file to compile"
     echo "Usage: ./test.ps1 <executable_name> <main_path>"
     exit 1
 }

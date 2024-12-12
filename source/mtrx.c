@@ -1,9 +1,7 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include "utils.h"
 #include "mtrx.h"
 
 #define DEBUGINIT !true
+
 //create vector
 mtrx_vector* create_vector(size_t len, size_t* y, size_t* z){
 #if DEBUGINIT

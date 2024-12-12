@@ -1,7 +1,6 @@
 #ifndef MTRX
 #define MTRX
 #include "utils.h"
-#include "errors.h"
 #define X(vector) (vector->x)
 #define Y(vector,i) (vector->y[i])
 #define Z(vector,i) (vector->z[i])

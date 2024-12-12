@@ -1,7 +1,5 @@
 #ifndef CMPT
 #define CMPT
-#include "utils.h"
-#include "mtrx.h"
 #include "neuralnet.h"
 
 // Softmax activation function

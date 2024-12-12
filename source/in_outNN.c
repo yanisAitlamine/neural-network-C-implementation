@@ -1,7 +1,3 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include "errors.h"
 #include "in_outNN.h"
 #define IMG_INFO 4
 #define LBL_INFO 2
