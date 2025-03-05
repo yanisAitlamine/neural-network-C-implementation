@@ -19,6 +19,7 @@
 #define TEST false
 #define SIZE_TEST 1000
 
+//read the mnist dataset and trains on it
 int main()
 {
 	srand(time(0));
