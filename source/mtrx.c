@@ -2,6 +2,8 @@
 
 #define DEBUGINIT !true
 
+
+
 //create vector
 mtrx_vector* create_vector(size_t len, size_t* y, size_t* z){
 #if DEBUGINIT
@@ -45,6 +47,7 @@ mtrx_vector* create_vector(size_t len, size_t* y, size_t* z){
     return v;
 }
 
+//create a matrix
 mtrx* create_mtrx(size_t len, size_t depth){
 #if DEBUGINIT
     printf("\nCreating mtrx!\n");
@@ -61,6 +64,7 @@ mtrx* create_mtrx(size_t len, size_t depth){
     }
     return v;
 }
+
 //free vector
 void free_vector(mtrx_vector *v){
     if(v==NULL)return;
@@ -77,6 +81,7 @@ void free_mtrx(mtrx *v){
     free(v);
 }
 
+// return the size of a mtrx vector
 size_t total_size(mtrx_vector* v){
     size_t size=0;
     for (int i=0;i<X(v);i++){
@@ -94,6 +99,7 @@ int get_index(mtrx_vector *v,int x,int y,int z){
     return index+z;
 }
 
+// get the mtrx from a mtrx_vector as a list
 double *get_mtrx(mtrx_vector *v, int x){
     double* result=malloc(Y(v,x)*Z(v,x)*sizeof(double));
     for (int i=0;i<Y(v,x);i++){

@@ -1,5 +1,6 @@
 #include "utils.h"
 
+//compute x to the power of n
 double pow_double_int(double x, int n){
     double result = 1.0;
     if (n>0){
@@ -13,23 +14,29 @@ double pow_double_int(double x, int n){
     return result;
 }
 
+//produce a random decimal
 double rand_decimal(){
     return (double)rand()/(double)RAND_MAX;
 }
 
+//return sigmoid of n
 double sigmoid(double n){
     return (1/(1+pow(EULER_NUMBER, -n)));
 }
 
+//sigmoid'(n) need to check this again
 double sigmoidprime(double n){
     return (n)*(1-(n));
 }
 
+//Relu of n
 double Relu(double n){
     if(n<0)return 0;
     return n;
 }
 
+
+//Relu prime of n
 double Reluprime(double n){
     if (n>=0){
         return 1;
@@ -42,6 +49,7 @@ double regression_cost(double expected, double output){
     return expected-output;
 }
 
+//cost to the power of 2
 double sqr_regression(double expected, double output){
     return pow_double_int(expected-output,2);
 }
@@ -53,6 +61,7 @@ double binary_prime(double expected, double output){
     return (expected/output+0.000001)-((1-expected)/(1-output+0.000001));
 }
 
+// derivative of sqr_regreqssion
 double sqr_prime(double expected, double output){
     return -2*(expected-output);
 }
@@ -62,6 +71,7 @@ double binary_cost(double expected, double output){
     return -((expected*log(output))+((1-expected)*log(1-output)));
 }
 
+//compute the cost with an int selector ( selector could be 2 bits)
 double cost (double expected, double output, int function){
     switch(function){
         case REGRESSION:
@@ -81,16 +91,18 @@ double cost (double expected, double output, int function){
     return ERR_RETURN;
 }
 
+//sums numbers of an array
 double sum_double(double* data, int size_data){
     double result=0;
     for (int i=0;i<size_data;i++)result+=data[i];
     return result;
 }
 
-
+//average an array
 double mean_double(double* data,int size_data){
     return sum_double(data,size_data)/size_data;
 }
+
 
 void swapTables(double ***data,int base,int target,int depth_in,int depth_out){
     double buffer;

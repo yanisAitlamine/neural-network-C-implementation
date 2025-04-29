@@ -7,6 +7,7 @@ void copy_size_list(size_t *source,size_t* target, size_t len){
     }
 }
 #define DEBUGINIT !true
+
 // Create an object neural network of a given length with given layer lenghts
 nNetwork* createNN(size_t len, size_t* depths,size_t* functions){
 #if DEBUGINIT
