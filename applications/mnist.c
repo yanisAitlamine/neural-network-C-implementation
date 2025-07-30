@@ -9,7 +9,7 @@
 #include "../source/errors.h"
 #include "../source/in_outNN.h"
 #include "../source/compute.h"
-#define SIZE_DATA 10000
+
 #define DP_IN 28*28
 #define DP_OUT 10
 #define LR 0.001
@@ -18,25 +18,30 @@
 #define TRAIN true
 #define TEST false
 #define SIZE_TEST 1000
+#define SIZE_TRAINING 10000
 
 int main()
 {
 	srand(time(0));
-	double*** train_data=init_data_matrix(SIZE_DATA,DP_IN,DP_OUT);	
+
+	//load SIZE_TRAINING items from mnist into memory
+	double*** train_data=init_data_matrix(SIZE_TRAINING,DP_IN,DP_OUT);	
 	if (train_data==NULL){
 		ERROR("train_data is null!\n");
 		return 1;
 	}
-	if (readMnistIMG(train_data,SIZE_DATA,TRAIN)){
+	if (readMnistIMG(train_data,SIZE_TRAINING,TRAIN)){
 		ERROR("read train img failed!\n");
-		free_data_mtrx(train_data,SIZE_DATA);
+		free_data_mtrx(train_data,SIZE_TRAINING);
 		return 1;
 	}
-	if (readMnistLabels(train_data,SIZE_DATA,TRAIN)){
+	if (readMnistLabels(train_data,SIZE_TRAINING,TRAIN)){
 		ERROR("read train labels failed!\n");
-		free_data_mtrx(train_data,SIZE_DATA);
+		free_data_mtrx(train_data,SIZE_TRAINING);
 		return 1;
 	}
+
+	//load SIZE_TEST items from mnist into memory
 	double*** test_data=init_data_matrix(SIZE_TEST,DP_IN,DP_OUT);	
 	if (test_data==NULL){
 		ERROR("test_data is null!\n");
@@ -52,6 +57,8 @@ int main()
 		free_data_mtrx(test_data,SIZE_TEST);
 		return 1;
 	}
+
+	//initiate a random NN if the file doesn't exist, load existing one otherwise
 	char* file="NNtest.nn";
 	nNetwork* NN=NULL;
 	if (fopen(file,"r")==NULL){
@@ -77,13 +84,15 @@ int main()
 		return 1;
 	}
 	printNN(NN);
-	mtrx* input=create_mtrx(SIZE_DATA,DP_IN);
-	mtrx* expected=create_mtrx(SIZE_DATA,DP_OUT);
-	shuffle(train_data,SIZE_DATA,DP_IN,DP_OUT,3);	
-	splitData(SIZE_DATA,DP_IN,DP_OUT,train_data,input,expected);
+
+	
+	mtrx* input=create_mtrx(SIZE_TRAINING,DP_IN);
+	mtrx* expected=create_mtrx(SIZE_TRAINING,DP_OUT);
+	shuffle(train_data,SIZE_TRAINING,DP_IN,DP_OUT,3);	
+	splitData(SIZE_TRAINING,DP_IN,DP_OUT,train_data,input,expected);
 	normalize(input,255);
 	printf ("data splitted\n");
-	free_data_mtrx(train_data,SIZE_DATA);
+	free_data_mtrx(train_data,SIZE_TRAINING);
 	mtrx* test_input=create_mtrx(SIZE_TEST,DP_IN);
 	mtrx* test_expected=create_mtrx(SIZE_TEST,DP_OUT);
 	splitData(SIZE_TEST,DP_IN,DP_OUT,test_data,test_input,test_expected);
